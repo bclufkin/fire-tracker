@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brad &amp; Wes — Path to FIRE</title>
-<!-- deploy check: pushed via API from Claude -->
+<title>Brad and Wes: Path to FIRE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
 <script>
 /*!
@@ -25,105 +27,108 @@
 </script>
 <style>
   :root{
-    --bg:#F6F5F0;
-    --paper:#FFFFFF;
-    --ink:#182333;
-    --ink-soft:#5B6472;
-    --ink-faint:#8B93A0;
-    --line:#E4E1D6;
-    --line-soft:#EDEBE2;
-    --sidebar:#12213D;
-    --sidebar-ink:#B9C4D6;
-    --sidebar-ink-dim:#7C8CA6;
-    --teal:#1F9C8C;
-    --teal-dark:#0F6E56;
-    --teal-wash:#E1F5EE;
-    --indigo:#3E5C9A;
-    --indigo-wash:#E7ECF7;
-    --gold:#B8863B;
-    --gold-wash:#F7EFDF;
-    --rust:#B5482A;
-    --rust-wash:#FBEAE3;
-    --green:#2F8F5B;
+    --bg:#F7F3EA;
+    --paper:#FFFEFA;
+    --ink:#1E3128;
+    --ink-soft:#5C7A63;
+    --ink-faint:#8FA894;
+    --line:#E3DCC8;
+    --line-soft:#EFE9D8;
+    --sidebar:#1E3128;
+    --sidebar-ink:#C7D6CB;
+    --sidebar-ink-dim:#7FA08C;
+    --teal:#3F6B52;
+    --teal-dark:#2F4A3D;
+    --teal-wash:#E7EFE6;
+    --indigo:#5A6B95;
+    --indigo-wash:#EAEDF5;
+    --gold:#B8935A;
+    --gold-wash:#F3E9D6;
+    --rust:#A2532E;
+    --rust-wash:#F5E5DB;
+    --green:#3F6B52;
     --radius:10px;
+    --font-head:'Arvo', Georgia, 'Iowan Old Style', serif;
+    --font-body:'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--bg);
     color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-family:var(--font-body);
     font-size:14px;
     line-height:1.5;
-    display:flex;
     min-height:100vh;
   }
   h1,h2,h3,h4{
-    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    font-family:var(--font-head);
     font-weight:400;
     margin:0;
     color:var(--ink);
   }
   .num{ font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; }
 
-  /* ---------- Sidebar ---------- */
-  #sidebar{
-    width:230px;
-    flex:0 0 230px;
+  /* ---------- Top bar ---------- */
+  #topbar{
     background:var(--sidebar);
     color:var(--sidebar-ink);
-    padding:28px 18px;
+    padding:0 28px;
     position:sticky;
     top:0;
-    height:100vh;
+    z-index:20;
     display:flex;
-    flex-direction:column;
+    align-items:center;
+    gap:32px;
+    height:60px;
   }
-  #sidebar .brand{
-    font-family:Georgia,serif;
-    font-size:19px;
+  #topbar .brand{
+    display:flex;
+    align-items:baseline;
+    gap:9px;
+    white-space:nowrap;
+  }
+  #topbar .brand-name{
+    font-family:var(--font-head);
+    font-size:18px;
     color:#fff;
-    margin-bottom:4px;
     letter-spacing:.2px;
   }
-  #sidebar .brand-sub{
+  #topbar .brand-sub{
     font-size:12px;
     color:var(--sidebar-ink-dim);
-    margin-bottom:34px;
   }
+  .navlist{ display:flex; gap:4px; }
   .navitem{
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:10px 12px;
-    border-radius:8px;
+    gap:8px;
+    padding:9px 14px;
+    border-radius:7px;
     cursor:pointer;
     color:var(--sidebar-ink);
-    font-size:14px;
-    margin-bottom:2px;
-    border-left:2px solid transparent;
+    font-size:13.5px;
+    border-bottom:2px solid transparent;
   }
-  .navitem:hover{ background:rgba(255,255,255,0.05); }
+  .navitem:hover{ background:rgba(255,255,255,0.06); color:#fff; }
   .navitem.active{
     background:rgba(31,156,140,0.16);
     color:#fff;
-    border-left:2px solid var(--teal);
   }
   .navitem .dot{
-    width:6px;height:6px;border-radius:50%;
-    background:currentColor;opacity:.55;flex:0 0 auto;
+    width:5px;height:5px;border-radius:50%;
+    background:currentColor;opacity:.6;flex:0 0 auto;
   }
-  #sidebar .foot{
-    margin-top:auto;
+  #disclaimer{
     font-size:11.5px;
-    color:var(--sidebar-ink-dim);
-    padding-top:18px;
-    border-top:1px solid rgba(255,255,255,0.08);
-    line-height:1.6;
+    color:var(--ink-faint);
+    padding:8px 42px;
+    border-bottom:1px solid var(--line-soft);
+    background:var(--paper);
   }
 
   /* ---------- Main ---------- */
-  #main{ flex:1; min-width:0; padding:34px 42px 60px; max-width:1180px; }
+  #main{ padding:28px 42px 60px; max-width:1180px; margin:0 auto; }
   .section{ display:none; }
   .section.active{ display:block; }
 
@@ -150,8 +155,8 @@
     border-radius:var(--radius);
     padding:16px 18px;
   }
-  .stat .label{ font-size:11.5px; color:var(--ink-soft); margin-bottom:8px; }
-  .stat .value{ font-family:Georgia,serif; font-size:25px; }
+  .stat .label{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; font-variant:small-caps; letter-spacing:.04em; font-weight:600; }
+  .stat .value{ font-family:var(--font-head); font-size:25px; }
   .stat .value.teal{ color:var(--teal-dark); }
 
   /* Pills / toggle group */
@@ -170,7 +175,7 @@
   .firecard .top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; }
   .firecard h3{ font-size:16.5px; }
   .firecard .target{ font-size:12px; color:var(--ink-soft); }
-  .firecard .bignum{ font-family:Georgia,serif; font-size:28px; margin:10px 0 4px; }
+  .firecard .bignum{ font-family:var(--font-head); font-size:28px; margin:10px 0 4px; }
   .progresswrap{ height:6px; background:var(--line-soft); border-radius:99px; overflow:hidden; margin-bottom:10px; }
   .progressbar{ height:100%; background:var(--teal); border-radius:99px; }
   .firecard .desc{ font-size:12px; color:var(--ink-soft); margin-bottom:10px; }
@@ -183,24 +188,31 @@
   .achievechip .v{ font-weight:600; font-size:13px; color:var(--ink); }
 
   /* Inputs page */
-  .formgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px; }
-  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:9px 0; border-bottom:1px solid var(--line-soft); }
-  .fieldrow:last-child{ border-bottom:none; }
+  .formgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:18px; }
+  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 12px; border-radius:8px; margin:0 -12px; }
+  .fieldrow:hover{ background:var(--bg); }
   .fieldrow label{ font-size:13px; color:var(--ink-soft); flex:1.3; }
   .fieldrow .hint{ display:block; font-size:11px; color:var(--ink-faint); margin-top:1px; }
-  .fieldrow .inputwrap{ flex:1; display:flex; justify-content:flex-end; align-items:center; gap:6px; }
+  .fieldrow .inputwrap{ flex:1; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:var(--ink-faint); font-size:13px; }
   input[type=number], input[type=date], input[type=text]{
-    border:1px solid var(--line); border-radius:7px; padding:7px 9px; font-size:13.5px;
-    background:#FBFAF7; width:130px; text-align:right; color:var(--ink);
+    border:1px solid var(--line); border-radius:8px; padding:8px 11px; font-size:13.5px;
+    background:var(--paper); width:128px; text-align:right; color:var(--ink);
     font-variant-numeric:tabular-nums;
+    transition:border-color .12s, box-shadow .12s;
   }
-  input[type=date]{ width:150px; text-align:left; }
-  input:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 2px var(--teal-wash); }
+  input[type=date]{ width:148px; text-align:left; }
+  input:hover{ border-color:var(--ink-faint); }
+  input:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-wash); }
   .placeholder-empty{ border-color:var(--rust); background:var(--rust-wash); }
+  .placeholder-empty:focus{ box-shadow:0 0 0 3px var(--rust-wash); }
   .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:0 22px; }
-  .personhead{ font-size:12.5px; font-weight:600; color:var(--teal-dark); text-transform:none; margin:14px 0 2px; }
-  .personhead.wes{ color:var(--indigo); }
-  .assumptext{ font-size:12px; color:var(--ink-soft); background:var(--bg); border-radius:8px; padding:10px 12px; margin-top:12px; line-height:1.6; }
+  .personhead{
+    display:inline-block; font-size:11.5px; font-weight:600; color:var(--teal-dark);
+    background:var(--teal-wash); border-radius:99px; padding:4px 11px; margin:16px 0 6px;
+  }
+  .personhead.wes{ color:var(--indigo); background:var(--indigo-wash); }
+  .assumptext{ font-size:12px; color:var(--ink-soft); background:var(--gold-wash); border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:11px 15px; margin-top:14px; line-height:1.65; }
+  .assumptext b{ color:var(--ink); }
 
   /* Chart wrappers */
   .chartwrap{ position:relative; width:100%; }
@@ -212,24 +224,30 @@
   table{ width:100%; border-collapse:collapse; font-size:12.5px; }
   thead th{
     position:sticky; top:0; background:var(--ink); color:#fff; text-align:right; padding:9px 10px;
-    font-weight:500; white-space:nowrap; z-index:1;
+    font-weight:600; white-space:nowrap; z-index:1; font-variant:small-caps; letter-spacing:.03em;
   }
   thead th:first-child, thead th:nth-child(2), thead th:nth-child(3){ text-align:left; }
   tbody td{ padding:7px 10px; text-align:right; border-bottom:1px solid var(--line-soft); white-space:nowrap; }
   tbody td:first-child, tbody td:nth-child(2), tbody td:nth-child(3){ text-align:left; color:var(--ink-soft); }
-  tbody tr:nth-child(even){ background:#FBFAF7; }
+  tbody tr:nth-child(even){ background:var(--bg); }
   tbody tr.milestone td{ background:var(--teal-wash); font-weight:600; }
 
+  .infodot{
+    display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px;
+    border-radius:50%; background:var(--line-soft); color:var(--ink-soft); font-size:10px;
+    font-family:var(--font-head); font-style:italic; margin-left:5px; cursor:help; vertical-align:middle;
+  }
+  .infodot:hover{ background:var(--teal); color:#fff; }
+  .definitions{ display:flex; flex-wrap:wrap; gap:16px 28px; font-size:12px; color:var(--ink-soft); margin:2px 0 16px; line-height:1.5; }
+  .definitions b{ color:var(--ink); font-weight:600; }
   .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--ink-soft); margin:4px 0 2px; }
   .legend span{ display:inline-flex; align-items:center; gap:5px; }
   .swatch{ width:10px; height:10px; border-radius:2px; display:inline-block; }
   .dash{ width:14px; height:0; border-top:2px dashed #9AA2AF; display:inline-block; }
 
   @media (max-width:900px){
-    body{ flex-direction:column; }
-    #sidebar{ width:100%; flex:none; height:auto; position:relative; flex-direction:row; align-items:center; padding:14px 18px; gap:18px; }
-    #sidebar .foot{ display:none; }
-    #sidebar .navlist{ display:flex; gap:6px; }
+    #topbar{ flex-wrap:wrap; height:auto; padding:12px 18px; gap:10px 16px; }
+    #disclaimer{ padding:8px 18px; }
     #main{ padding:22px 18px 50px; }
     .stats{ grid-template-columns:repeat(2,1fr); }
   }
@@ -237,20 +255,18 @@
 </head>
 <body>
 
-<div id="sidebar">
-  <div>
-    <div class="brand">Brad &amp; Wes</div>
-    <div class="brand-sub">Path to FIRE</div>
+<div id="topbar">
+  <div class="brand">
+    <span class="brand-name">Brad and Wes</span>
+    <span class="brand-sub">Path to FIRE</span>
   </div>
   <div class="navlist">
     <div class="navitem active" data-section="dashboard"><span class="dot"></span>Dashboard</div>
     <div class="navitem" data-section="inputs"><span class="dot"></span>Inputs</div>
     <div class="navitem" data-section="projection"><span class="dot"></span>Projection</div>
   </div>
-  <div class="foot">
-    All figures are projections based on the assumptions on the Inputs page — not financial advice. Edit anything there and every chart on this page updates.
-  </div>
 </div>
+<div id="disclaimer">All figures are projections based on the assumptions on the Inputs page. Not financial advice. Edit anything there and every chart updates.</div>
 
 <div id="main">
 
@@ -264,19 +280,19 @@
     <div class="stats">
       <div class="stat">
         <div class="label">Combined net worth today</div>
-        <div class="value teal num" id="stat-networth">—</div>
+        <div class="value teal num" id="stat-networth">n/a</div>
       </div>
       <div class="stat">
         <div class="label">Combined investable assets</div>
-        <div class="value num" id="stat-assets">—</div>
+        <div class="value num" id="stat-assets">n/a</div>
       </div>
       <div class="stat">
         <div class="label">Combined annual income</div>
-        <div class="value num" id="stat-income">—</div>
+        <div class="value num" id="stat-income">n/a</div>
       </div>
       <div class="stat">
         <div class="label">Household savings rate</div>
-        <div class="value num" id="stat-savingsrate">—</div>
+        <div class="value num" id="stat-savingsrate">n/a</div>
       </div>
     </div>
 
@@ -286,25 +302,39 @@
           <h3>Net worth over time</h3>
           <div class="sub">Investable assets plus real-estate equity. Click a name in the legend to isolate it.</div>
         </div>
-        <div class="pillgroup" id="nw-scenario-pills">
-          <div class="pill active" data-scn="stop">Stop investing</div>
-          <div class="pill" data-scn="continue">Keep current pace</div>
-          <div class="pill" data-scn="increase">Increase over time</div>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div class="pillgroup" id="nw-scenario-pills">
+            <div class="pill active" data-scn="stop" title="Assumes you stop putting new money into investments starting today. Existing assets keep growing from market returns alone.">Stop investing</div>
+            <div class="pill" data-scn="continue" title="Assumes you keep investing the same dollar amount per month that you are today, every year, with no increase.">Keep current pace</div>
+            <div class="pill" data-scn="increase" title="Assumes your monthly investing grows every year by the rate set below, similar to how the IRS 401(k) contribution limit tends to rise.">Increase over time</div>
+          </div>
+          <div style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+            by <input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1" style="width:56px;">% / yr
+          </div>
         </div>
+      </div>
+      <div class="definitions">
+        <div><b>Stop investing:</b> no new contributions from today. Assets grow from returns only.</div>
+        <div><b>Keep current pace:</b> your monthly investing stays flat at today's amount.</div>
+        <div><b>Increase over time:</b> your monthly investing grows each year by the rate above.</div>
+        <div><b>Target needed:</b> the portfolio size required to fund that FIRE type's spending using a 4% withdrawal rate.</div>
       </div>
       <div class="chartwrap chartbig"><canvas id="chart-networth"></canvas></div>
     </div>
 
     <div class="card" style="margin-top:16px;">
       <h3>The five FIRE targets</h3>
-      <div class="sub">Progress compares your <em>investable</em> assets to each target — home equity builds real wealth but isn't part of a 4% withdrawal plan. Each chart shows three savings paths against the target you'd need (which grows with inflation).</div>
+      <div class="sub">Progress compares your <em>investable</em> assets to each target. Home equity builds real wealth, but it isn't part of a 4% withdrawal plan. See the note below the cards for what that means. Each chart plots three savings paths against the target you'd need, which grows with inflation.</div>
       <div class="legend">
-        <span><span class="swatch" style="background:#B5482A"></span>Stop investing now</span>
-        <span><span class="swatch" style="background:#1F9C8C"></span>Keep current pace</span>
-        <span><span class="swatch" style="background:#3E5C9A"></span>Increase contributions yearly</span>
-        <span><span class="dash"></span>Target needed</span>
+        <span><span class="swatch" style="background:#A2532E"></span>Stop investing now</span>
+        <span><span class="swatch" style="background:#3F6B52"></span>Keep current pace</span>
+        <span><span class="swatch" style="background:#5A6B95"></span>Increase contributions yearly</span>
+        <span><span class="dash"></span>Target needed<span class="infodot" title="The portfolio size required, at a 4% safe withdrawal rate, to fund that FIRE type's spending target. It rises each year with inflation so it always represents today's buying power.">i</span></span>
       </div>
       <div class="firegrid" id="firegrid"></div>
+      <div class="assumptext" style="margin-top:16px;">
+        <b>What "today's dollars" means:</b> every spending target on this page (Lean FIRE's $109,500, for example) is stated in today's buying power. The model does not assume you withdraw exactly that many nominal dollars in the future. Instead it inflates the target forward each year (at the inflation rate you set) to find the actual future dollar amount you would need, then compares your projected nominal assets against that inflated number. So $109,500 of Lean FIRE spending means: whatever it costs, years from now, to buy what $109,500 buys today.
+      </div>
     </div>
   </section>
 
@@ -312,7 +342,7 @@
   <section class="section" id="section-inputs">
     <div class="pagehead">
       <h1>Inputs</h1>
-      <p>Everything here is live — change a number and the Dashboard and Projection pages update immediately.</p>
+      <p>Everything here is live. Change a number and the Dashboard and Projection pages update immediately.</p>
     </div>
 
     <div class="formgrid">
@@ -335,7 +365,7 @@
 
       <div class="card">
         <h3>Real estate</h3>
-        <div class="sub">Values and balances are placeholders — fill in real numbers for an accurate net worth.</div>
+        <div class="sub">Values and balances are placeholders. Fill in real numbers for an accurate net worth.</div>
         <div class="personhead">6225 Cheryl Drive · primary, owned jointly</div>
         <div class="fieldrow"><label>Current home value</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.value" id="in-primary-value"></div></div>
         <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.balance" id="in-primary-balance"></div></div>
@@ -348,12 +378,12 @@
         <div class="fieldrow"><label>Monthly payment (P&amp;I)</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.payment"></div></div>
         <div class="fieldrow"><label>Monthly rent collected</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.rentIncome"></div></div>
         <div class="fieldrow"><label>Monthly expenses<span class="hint">HOA, insurance, property tax</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.expenses"></div></div>
-        <div class="fieldrow"><label>Net rental cash flow</label><div class="inputwrap"><span id="rental-cashflow" style="font-weight:600;">—</span></div></div>
+        <div class="fieldrow"><label>Net rental cash flow</label><div class="inputwrap"><span id="rental-cashflow" style="font-weight:600;">n/a</span></div></div>
       </div>
 
       <div class="card">
         <h3>Market &amp; planning assumptions</h3>
-        <div class="sub">Reasonable long-run defaults — all editable.</div>
+        <div class="sub">Reasonable long-run defaults, all editable.</div>
         <div class="fieldrow"><label>Investment return</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.investmentReturn" data-pct="1">%</div></div>
         <div class="fieldrow"><label>Home appreciation</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.homeAppreciation" data-pct="1">%</div></div>
         <div class="fieldrow"><label>Inflation</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.inflation" data-pct="1">%</div></div>
@@ -361,21 +391,21 @@
         <div class="fieldrow"><label>Income growth rate</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.incomeGrowth" data-pct="1">%</div></div>
         <div class="fieldrow"><label>Contribution increase rate<span class="hint">used by the "increase" scenario</span></label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1">%</div></div>
         <div class="assumptext">
-          Investment return 7% and inflation 3% are common long-run planning defaults for a diversified stock/bond portfolio. Home appreciation 3.5% tracks the long-run US average. Mortgage rate defaults to 6.5%, a recent-vintage rate — replace with your actual rate. The 3% contribution increase approximates how the IRS 401(k) contribution cap has typically crept up.
+          Investment return 7% and inflation 3% are common long-run planning defaults for a diversified stock and bond portfolio. Home appreciation 3.5% tracks the long-run US average. Mortgage rate defaults to 6.5%, a recent-vintage rate: replace it with your actual rate. The 3% contribution increase approximates how the IRS 401(k) contribution cap has typically crept up.
         </div>
       </div>
 
       <div class="card">
         <h3>FIRE spending targets</h3>
-        <div class="sub">Annual spending in today's dollars — pre-filled from your budget, edit freely.</div>
+        <div class="sub">Annual spending in today's dollars, pre-filled from your budget. Edit freely.</div>
         <div class="fieldrow"><label>Lean FIRE<span class="hint">essentials only</span></label><div class="inputwrap">$<input type="number" data-path="fire.lean"></div></div>
-        <div class="fieldrow"><label>Traditional FIRE<span class="hint">essentials + discretionary — also used for Coast &amp; Barista</span></label><div class="inputwrap">$<input type="number" data-path="fire.traditional"></div></div>
+        <div class="fieldrow"><label>Traditional FIRE<span class="hint">essentials + discretionary, also used for Coast and Barista</span></label><div class="inputwrap">$<input type="number" data-path="fire.traditional"></div></div>
         <div class="fieldrow"><label>Fat FIRE<span class="hint">a more comfortable lifestyle</span></label><div class="inputwrap">$<input type="number" data-path="fire.fat"></div></div>
         <div class="fieldrow"><label>Barista part-time income<span class="hint">offsets Traditional's spending target</span></label><div class="inputwrap">$<input type="number" data-path="fire.baristaIncome"></div></div>
       </div>
 
       <div class="card">
-        <h3>Future income <span class="hint" style="font-size:12px;">optional — left at $0 excludes them</span></h3>
+        <h3>Future income <span class="hint" style="font-size:12px;">optional, left at $0 excludes them</span></h3>
         <div class="fieldrow"><label>Wes's federal pension<span class="hint">annual, today's $</span></label><div class="inputwrap">$<input type="number" data-path="futureIncome.pensionWes"></div></div>
         <div class="fieldrow"><label>Pension start age</label><div class="inputwrap"><input type="number" data-path="futureIncome.pensionStartAge"></div></div>
         <div class="fieldrow"><label>Brad's Social Security estimate<span class="hint">annual, today's $</span></label><div class="inputwrap">$<input type="number" data-path="futureIncome.ssBrad"></div></div>
@@ -457,14 +487,18 @@ function ageFromDob(dobStr, today){
   if(m<0 || (m===0 && today.getDate() < dob.getDate())) age--;
   return age;
 }
+function trimDecimal(n, maxDecimals){
+  const s = n.toFixed(maxDecimals);
+  return s.replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+}
 function fmt$(v){
-  if(v===null||v===undefined||isNaN(v)) return '—';
+  if(v===null||v===undefined||isNaN(v)) return 'n/a';
   const sign = v<0 ? '-' : '';
   v = Math.abs(v);
-  if(v>=1000000) return sign+'$'+(v/1000000).toFixed(2)+'M';
+  if(v>=1000000) return sign+'$'+trimDecimal(v/1000000,1)+'M';
   return sign+'$'+Math.round(v).toLocaleString('en-US');
 }
-function fmt$full(v){ if(v===null||v===undefined||isNaN(v)) return '—'; return (v<0?'-':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-US'); }
+function fmt$full(v){ if(v===null||v===undefined||isNaN(v)) return 'n/a'; return (v<0?'-':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-US'); }
 function fmtPct(v){ return (v*100).toFixed(1)+'%'; }
 
 /* ===================== ENGINE ===================== */
@@ -614,7 +648,7 @@ function renderDashboard(){
   document.getElementById('stat-networth').textContent = fmt$(netWorth);
   document.getElementById('stat-assets').textContent = fmt$(combinedAssets);
   document.getElementById('stat-income').textContent = fmt$(combinedIncome);
-  document.getElementById('stat-savingsrate').textContent = combinedIncome>0 ? fmtPct(combinedContrib/combinedIncome) : '—';
+  document.getElementById('stat-savingsrate').textContent = combinedIncome>0 ? fmtPct(combinedContrib/combinedIncome) : 'n/a';
 
   const rows = project(nwScenario);
   const labels = rows.map(r=>r.year);
@@ -622,9 +656,9 @@ function renderDashboard(){
   charts.networth = new Chart(document.getElementById('chart-networth'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Brad', data:rows.map(r=>r.bradNW), borderColor:'#1F9C8C', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.15 },
-      { label:'Wes', data:rows.map(r=>r.wesNW), borderColor:'#3E5C9A', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.15 },
-      { label:'Joint', data:rows.map(r=>r.jointNW), borderColor:'#B8863B', backgroundColor:'rgba(184,134,59,0.08)', fill:true, borderWidth:2.5, pointRadius:0, tension:0.15 }
+      { label:'Brad', data:rows.map(r=>r.bradNW), borderColor:'#3F6B52', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.15 },
+      { label:'Wes', data:rows.map(r=>r.wesNW), borderColor:'#5A6B95', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.15 },
+      { label:'Joint', data:rows.map(r=>r.jointNW), borderColor:'#B8935A', backgroundColor:'rgba(184,134,59,0.08)', fill:true, borderWidth:2.5, pointRadius:0, tension:0.15 }
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -639,7 +673,7 @@ function renderDashboard(){
       },
       scales:{
         x:{ grid:{ display:false }, ticks:{ maxTicksLimit:12 } },
-        y:{ grid:{ color:'#EDEBE2' }, ticks:{ callback:(v)=>fmt$(v) } }
+        y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
       }
     }
   });
@@ -650,8 +684,8 @@ function renderDashboard(){
 const FIRE_META = {
   lean:{ title:'Lean FIRE', desc:'Bare-bones retirement covering essentials only.' },
   barista:{ title:'Barista FIRE', desc:'Full lifestyle, partly covered by part-time income.' },
-  coast:{ title:'Coast FIRE', desc:'Enough invested now to reach Traditional by Wes\'s retirement age on growth alone.' },
-  traditional:{ title:'Traditional FIRE', desc:'The standard target — full current lifestyle.' },
+  coast:{ title:'Coast FIRE', desc:'If you had this much invested today and never contributed another dollar, market growth alone would carry it to your full Traditional FIRE number by the time Wes turns 65.' },
+  traditional:{ title:'Traditional FIRE', desc:'The standard target: your full current lifestyle.' },
   fat:{ title:'Fat FIRE', desc:'A more comfortable, higher-spending retirement.' }
 };
 
@@ -685,17 +719,18 @@ function renderFireCards(rowsContinueUnused){
     charts['fc-'+type] = new Chart(document.getElementById('fc-'+type), {
       type:'line',
       data:{ labels:data.years, datasets:[
-        { label:'Stop', data:data.series.stop, borderColor:'#B5482A', borderWidth:1.5, pointRadius:0, tension:0.1 },
-        { label:'Continue', data:data.series.continue, borderColor:'#1F9C8C', borderWidth:1.5, pointRadius:0, tension:0.1 },
-        { label:'Increase', data:data.series.increase, borderColor:'#3E5C9A', borderWidth:1.5, pointRadius:0, tension:0.1 },
-        { label:'Target', data:data.targetVals, borderColor:'#8B93A0', borderDash:[4,3], borderWidth:1.5, pointRadius:0, tension:0.1 }
+        { label:'Stop', data:data.series.stop, borderColor:'#A2532E', borderWidth:1.5, pointRadius:0, tension:0.1 },
+        { label:'Continue', data:data.series.continue, borderColor:'#3F6B52', borderWidth:1.5, pointRadius:0, tension:0.1 },
+        { label:'Increase', data:data.series.increase, borderColor:'#5A6B95', borderWidth:1.5, pointRadius:0, tension:0.1 },
+        { label:'Target', data:data.targetVals, borderColor:'#8FA894', borderDash:[4,3], borderWidth:1.5, pointRadius:0, tension:0.1 }
       ]},
       options:{
         responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
         plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=> ctx.dataset.label+': '+fmt$full(ctx.parsed.y) } } },
         scales:{
           x:{ grid:{ display:false }, ticks:{ maxTicksLimit:6, font:{size:10} } },
-          y:{ grid:{ color:'#EDEBE2' }, ticks:{ maxTicksLimit:4, font:{size:10}, callback:(v)=>fmt$(v) } }
+          y:{ grid:{ color:'#EFE9D8' }, ticks:{ maxTicksLimit:4, font:{size:10}, callback:(v)=>fmt$(v) } }
         }
       }
     });
@@ -703,7 +738,7 @@ function renderFireCards(rowsContinueUnused){
 }
 function achievechip(label, row){
   const v = row ? row.year+' (Brad '+row.bradAge+' / Wes '+row.wesAge+')' : 'beyond 56 yrs';
-  return '<div class="achievechip"><div class="k">'+label+'</div><div class="v">'+(row?row.year:'—')+'</div></div>';
+  return '<div class="achievechip"><div class="k">'+label+'</div><div class="v">'+(row?row.year:'n/a')+'</div></div>';
 }
 
 /* ===================== RENDER: PROJECTION ===================== */
