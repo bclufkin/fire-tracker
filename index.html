@@ -214,7 +214,7 @@
   input[type=checkbox]{ width:16px; height:16px; accent-color:var(--teal); cursor:pointer; }
   input:hover{ border-color:var(--ink-faint); }
   input:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-wash); }
-  .placeholder-empty{ border-color:var(--rust); background:var(--rust-wash); }
+  input.placeholder-empty{ border-color:var(--rust); background:var(--rust-wash); }
   .placeholder-empty:focus{ box-shadow:0 0 0 3px var(--rust-wash); }
   .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:0 22px; }
   .personhead{
@@ -230,6 +230,16 @@
   .acct-table td:first-child{ text-align:left; }
   .acct-table input{ width:88px; padding:6px 8px; font-size:12.5px; }
   .acct-table tr.acct-total td{ border-top:1px solid var(--line); padding-top:7px; font-weight:700; color:var(--ink); }
+  .param-table{ width:100%; border-collapse:collapse; }
+  .param-table tr{ border-bottom:1px solid var(--line-soft); }
+  .param-table tr:last-child{ border-bottom:none; }
+  .param-table tr:hover{ background:var(--bg); }
+  .param-table td{ padding:8px 4px; font-size:13px; color:var(--ink-soft); vertical-align:middle; }
+  .param-table td:first-child{ width:68%; }
+  .param-table td.pval{ text-align:right; white-space:nowrap; }
+  .param-table .hint{ display:block; font-size:11px; color:var(--ink-faint); margin-top:1px; }
+  .param-table input{ width:84px; }
+  input.placeholder-guess{ background:var(--gold-wash); border-color:var(--gold); }
   #section-methodology .sub{ font-size:13px; line-height:1.55; }
   #section-methodology code{
     background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:1px 6px;
@@ -393,7 +403,7 @@
     <div class="formgrid">
       <div class="card">
         <h3>You two</h3>
-        <div class="sub">Ages calculate themselves from your birthdays.</div>
+        <div class="sub">Ages calculate themselves from your birthdays. Balances highlighted in gold are unverified placeholders parking your full total in one bucket. Split them across your real accounts when you can.</div>
         <div class="personhead">Brad</div>
         <div class="fieldrow"><label>Birthday<span class="hint" id="brad-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="brad.dob"></div></div>
         <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="brad.retireAge"></div></div>
@@ -401,7 +411,7 @@
         <table class="acct-table">
           <thead><tr><th style="text-align:left;">Brad's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
           <tbody>
-            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="brad.accounts.traditional.balance"></td><td>$<input type="number" data-path="brad.accounts.traditional.monthly"></td></tr>
+            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="brad.accounts.traditional.balance" id="brad-trad-balance"></td><td>$<input type="number" data-path="brad.accounts.traditional.monthly"></td></tr>
             <tr><td>Roth 401(k)/IRA</td><td>$<input type="number" data-path="brad.accounts.roth.balance"></td><td>$<input type="number" data-path="brad.accounts.roth.monthly"></td></tr>
             <tr><td>HSA</td><td>$<input type="number" data-path="brad.accounts.hsa.balance"></td><td>$<input type="number" data-path="brad.accounts.hsa.monthly"></td></tr>
             <tr><td>Brokerage</td><td>$<input type="number" data-path="brad.accounts.brokerage.balance"></td><td>$<input type="number" data-path="brad.accounts.brokerage.monthly"></td></tr>
@@ -415,7 +425,7 @@
         <table class="acct-table">
           <thead><tr><th style="text-align:left;">Wes's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
           <tbody>
-            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="wes.accounts.traditional.balance"></td><td>$<input type="number" data-path="wes.accounts.traditional.monthly"></td></tr>
+            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="wes.accounts.traditional.balance" id="wes-trad-balance"></td><td>$<input type="number" data-path="wes.accounts.traditional.monthly"></td></tr>
             <tr><td>Roth 401(k)/IRA</td><td>$<input type="number" data-path="wes.accounts.roth.balance"></td><td>$<input type="number" data-path="wes.accounts.roth.monthly"></td></tr>
             <tr><td>HSA</td><td>$<input type="number" data-path="wes.accounts.hsa.balance"></td><td>$<input type="number" data-path="wes.accounts.hsa.monthly"></td></tr>
             <tr><td>Brokerage</td><td>$<input type="number" data-path="wes.accounts.brokerage.balance"></td><td>$<input type="number" data-path="wes.accounts.brokerage.monthly"></td></tr>
@@ -450,12 +460,14 @@
       <div class="card">
         <h3>Market &amp; planning assumptions</h3>
         <div class="sub">Reasonable long-run defaults, all editable.</div>
-        <div class="fieldrow"><label>Investment return</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.investmentReturn" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Home appreciation</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.homeAppreciation" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Inflation</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.inflation" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Safe withdrawal rate</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.swr" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Income growth rate</label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.incomeGrowth" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Contribution increase rate<span class="hint">used by the "increase" scenario</span></label><div class="inputwrap"><input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1">%</div></div>
+        <table class="param-table"><tbody>
+          <tr><td>Investment return</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.investmentReturn" data-pct="1">%</td></tr>
+          <tr><td>Home appreciation</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.homeAppreciation" data-pct="1">%</td></tr>
+          <tr><td>Inflation</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.inflation" data-pct="1">%</td></tr>
+          <tr><td>Safe withdrawal rate</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.swr" data-pct="1">%</td></tr>
+          <tr><td>Income growth rate</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.incomeGrowth" data-pct="1">%</td></tr>
+          <tr><td>Contribution increase rate<span class="hint">used by the "increase" scenario</span></td><td class="pval"><input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1">%</td></tr>
+        </tbody></table>
         <div class="assumptext">
           Investment return 7% and inflation 3% are common long-run planning defaults for a diversified stock and bond portfolio. Home appreciation 3.5% tracks the long-run US average. Mortgage rate defaults to 6.5%, a recent-vintage rate: replace it with your actual rate. The 3% contribution increase approximates how the IRS 401(k) contribution cap has typically crept up.
         </div>
@@ -464,42 +476,52 @@
       <div class="card">
         <h3>FIRE spending targets</h3>
         <div class="sub">Annual spending in today's dollars, pre-filled from your budget. Edit freely.</div>
-        <div class="fieldrow"><label>Lean FIRE<span class="hint">essentials only</span></label><div class="inputwrap">$<input type="number" data-path="fire.lean"></div></div>
-        <div class="fieldrow"><label>Traditional FIRE<span class="hint">essentials + discretionary, also used for Coast and Barista</span></label><div class="inputwrap">$<input type="number" data-path="fire.traditional"></div></div>
-        <div class="fieldrow"><label>Chubby FIRE<span class="hint">real comfort, between Traditional and Fat</span></label><div class="inputwrap">$<input type="number" data-path="fire.chubby"></div></div>
-        <div class="fieldrow"><label>Fat FIRE<span class="hint">a more comfortable lifestyle</span></label><div class="inputwrap">$<input type="number" data-path="fire.fat"></div></div>
-        <div class="fieldrow"><label>Barista part-time income<span class="hint">offsets Traditional's spending target</span></label><div class="inputwrap">$<input type="number" data-path="fire.baristaIncome"></div></div>
+        <table class="param-table"><tbody>
+          <tr><td>Lean FIRE<span class="hint">essentials only</span></td><td class="pval">$<input type="number" data-path="fire.lean"></td></tr>
+          <tr><td>Traditional FIRE<span class="hint">essentials + discretionary, also used for Coast and Barista</span></td><td class="pval">$<input type="number" data-path="fire.traditional"></td></tr>
+          <tr><td>Chubby FIRE<span class="hint">real comfort, between Traditional and Fat</span></td><td class="pval">$<input type="number" data-path="fire.chubby"></td></tr>
+          <tr><td>Fat FIRE<span class="hint">a more comfortable lifestyle</span></td><td class="pval">$<input type="number" data-path="fire.fat"></td></tr>
+          <tr><td>Barista part-time income<span class="hint">offsets Traditional's spending target</span></td><td class="pval">$<input type="number" data-path="fire.baristaIncome"></td></tr>
+        </tbody></table>
       </div>
 
       <div class="card">
         <h3>Future income <span class="hint" style="font-size:12px;">optional, left at $0 excludes them</span></h3>
-        <div class="fieldrow"><label>Wes's federal pension<span class="hint">annual, today's $</span></label><div class="inputwrap">$<input type="number" data-path="futureIncome.pensionWes"></div></div>
-        <div class="fieldrow"><label>Pension start age</label><div class="inputwrap"><input type="number" data-path="futureIncome.pensionStartAge"></div></div>
-        <div class="fieldrow"><label>Brad's Social Security estimate<span class="hint">annual, today's $</span></label><div class="inputwrap">$<input type="number" data-path="futureIncome.ssBrad"></div></div>
-        <div class="fieldrow"><label>Wes's Social Security estimate<span class="hint">annual, today's $</span></label><div class="inputwrap">$<input type="number" data-path="futureIncome.ssWes"></div></div>
-        <div class="fieldrow"><label>Social Security start age</label><div class="inputwrap"><input type="number" data-path="futureIncome.ssStartAge"></div></div>
+        <table class="param-table"><tbody>
+          <tr><td>Wes's federal pension<span class="hint">annual, today's $</span></td><td class="pval">$<input type="number" data-path="futureIncome.pensionWes"></td></tr>
+          <tr><td>Pension start age</td><td class="pval"><input type="number" data-path="futureIncome.pensionStartAge"></td></tr>
+          <tr><td>Brad's Social Security estimate<span class="hint">annual, today's $</span></td><td class="pval">$<input type="number" data-path="futureIncome.ssBrad"></td></tr>
+          <tr><td>Wes's Social Security estimate<span class="hint">annual, today's $</span></td><td class="pval">$<input type="number" data-path="futureIncome.ssWes"></td></tr>
+          <tr><td>Social Security start age</td><td class="pval"><input type="number" data-path="futureIncome.ssStartAge"></td></tr>
+        </tbody></table>
       </div>
 
       <div class="card">
         <h3>Tax treatment</h3>
         <div class="sub">A simplified model: no true bucket-by-bucket tracking, but it grosses up your required nest egg to cover taxes owed on withdrawals.</div>
-        <div class="fieldrow"><label>Share of investable assets that's pre-tax<span class="hint">computed from your account balances above</span></label><div class="inputwrap"><span id="tax-trad-fraction" style="font-weight:600;">n/a</span></div></div>
-        <div class="fieldrow"><label>Effective tax rate on those withdrawals<span class="hint">blended rate you'd actually pay</span></label><div class="inputwrap"><input type="number" step="1" data-path="tax.effectiveTaxRate" data-pct="1">%</div></div>
+        <table class="param-table"><tbody>
+          <tr><td>Share of investable assets that's pre-tax<span class="hint">computed from your account balances</span></td><td class="pval" id="tax-trad-fraction" style="font-weight:600;">n/a</td></tr>
+          <tr><td>Effective tax rate on those withdrawals<span class="hint">blended rate you'd actually pay</span></td><td class="pval"><input type="number" step="1" data-path="tax.effectiveTaxRate" data-pct="1">%</td></tr>
+        </tbody></table>
       </div>
 
       <div class="card">
         <h3>Health care bridge</h3>
         <div class="sub">Marketplace premiums between retiring and Medicare at 65, added to spending only during that window for whichever of you it applies to.</div>
-        <div class="fieldrow"><label>Brad: monthly premium if retired before 65</label><div class="inputwrap">$<input type="number" data-path="healthcare.bradMonthly"></div></div>
-        <div class="fieldrow"><label>Wes: monthly premium if retired before 65</label><div class="inputwrap">$<input type="number" data-path="healthcare.wesMonthly"></div></div>
+        <table class="param-table"><tbody>
+          <tr><td>Brad: monthly premium if retired before 65</td><td class="pval">$<input type="number" data-path="healthcare.bradMonthly"></td></tr>
+          <tr><td>Wes: monthly premium if retired before 65</td><td class="pval">$<input type="number" data-path="healthcare.wesMonthly"></td></tr>
+        </tbody></table>
       </div>
 
       <div class="card">
         <h3>Emergency fund</h3>
         <div class="sub">Tracked separately from your investable assets and FIRE progress.</div>
-        <div class="fieldrow"><label>Target coverage</label><div class="inputwrap"><input type="number" data-path="emergencyFund.targetMonths"> months</div></div>
-        <div class="fieldrow"><label>Current balance</label><div class="inputwrap">$<input type="number" data-path="emergencyFund.currentBalance"></div></div>
-        <div class="fieldrow"><label>Coverage today</label><div class="inputwrap"><span id="ef-coverage" style="font-weight:600;">n/a</span></div></div>
+        <table class="param-table"><tbody>
+          <tr><td>Target coverage</td><td class="pval"><input type="number" data-path="emergencyFund.targetMonths"> mo.</td></tr>
+          <tr><td>Current balance</td><td class="pval">$<input type="number" data-path="emergencyFund.currentBalance"></td></tr>
+          <tr><td>Coverage today</td><td class="pval" id="ef-coverage" style="font-weight:600;">n/a</td></tr>
+        </tbody></table>
       </div>
 
       <div class="card">
@@ -1410,6 +1432,14 @@ function renderInputsLive(){
   document.getElementById('wes-assets-total').textContent = fmt$full(personAssets('wes'));
   document.getElementById('wes-contrib-total').textContent = fmt$full(personContrib('wes'))+'/mo';
   document.getElementById('tax-trad-fraction').textContent = (computedTraditionalFraction()*100).toFixed(0)+'%';
+
+  const bradA = state.brad.accounts, wesA = state.wes.accounts;
+  const bradUnsplit = bradA.roth.balance===0 && bradA.hsa.balance===0 && bradA.brokerage.balance===0 && bradA.traditional.balance>0;
+  const wesUnsplit = wesA.roth.balance===0 && wesA.hsa.balance===0 && wesA.brokerage.balance===0 && wesA.traditional.balance>0;
+  document.getElementById('brad-trad-balance').classList.toggle('placeholder-guess', bradUnsplit);
+  document.getElementById('brad-trad-balance').title = bradUnsplit ? 'Unverified: your full total is parked here as a placeholder. Split it across your real accounts.' : '';
+  document.getElementById('wes-trad-balance').classList.toggle('placeholder-guess', wesUnsplit);
+  document.getElementById('wes-trad-balance').title = wesUnsplit ? 'Unverified: your full total is parked here as a placeholder. Split it across your real accounts.' : '';
 
   ['in-primary-value','in-primary-balance'].forEach(id=>{
     document.getElementById(id).classList.toggle('placeholder-empty', Number(document.getElementById(id).value)===0);
