@@ -202,11 +202,14 @@
   .fieldrow .hint{ display:block; font-size:11px; color:var(--ink-faint); margin-top:1px; }
   .fieldrow .inputwrap{ flex:1; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:var(--ink-faint); font-size:13px; }
   input[type=number], input[type=date], input[type=text]{
-    border:1px solid var(--line); border-radius:8px; padding:8px 11px; font-size:13.5px;
+    border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:14px;
     background:var(--paper); width:128px; text-align:right; color:var(--ink);
-    font-variant-numeric:tabular-nums;
+    font-variant-numeric:tabular-nums; font-family:var(--font-body);
     transition:border-color .12s, box-shadow .12s;
   }
+  input[type=number]{ -moz-appearance:textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   input[type=date]{ width:148px; text-align:left; }
   input[type=checkbox]{ width:16px; height:16px; accent-color:var(--teal); cursor:pointer; }
   input:hover{ border-color:var(--ink-faint); }
@@ -221,6 +224,12 @@
   .personhead.wes{ color:var(--indigo); background:var(--indigo-wash); }
   .assumptext{ font-size:12px; color:var(--ink-soft); background:var(--gold-wash); border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:11px 15px; margin-top:14px; line-height:1.65; }
   .assumptext b{ color:var(--ink); }
+  .acct-table{ width:100%; border-collapse:collapse; margin:8px 0 14px; font-size:12.5px; }
+  .acct-table th{ text-align:right; color:var(--ink-faint); font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:.04em; padding:4px 6px; border-bottom:1px solid var(--line); }
+  .acct-table td{ padding:4px 6px; text-align:right; color:var(--ink-soft); }
+  .acct-table td:first-child{ text-align:left; }
+  .acct-table input{ width:88px; padding:6px 8px; font-size:12.5px; }
+  .acct-table tr.acct-total td{ border-top:1px solid var(--line); padding-top:7px; font-weight:700; color:var(--ink); }
   #section-methodology .sub{ font-size:13px; line-height:1.55; }
   #section-methodology code{
     background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:1px 6px;
@@ -378,6 +387,7 @@
     <div class="pagehead">
       <h1>Inputs</h1>
       <p>Everything here is live. Change a number and the Dashboard and Projection pages update immediately. Everything you enter is saved automatically in this browser, so it's still here next time you open this page even after closing the tab. <a href="#" id="reset-inputs-link" style="color:var(--rust);">Reset all inputs to defaults</a></p>
+      <div id="save-indicator" style="font-size:12px; color:var(--green); font-weight:700; height:16px; margin-top:6px; opacity:0; transition:opacity .3s;">&#10003; Saved</div>
     </div>
 
     <div class="formgrid">
@@ -387,32 +397,53 @@
         <div class="personhead">Brad</div>
         <div class="fieldrow"><label>Birthday<span class="hint" id="brad-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="brad.dob"></div></div>
         <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="brad.retireAge"></div></div>
-        <div class="fieldrow"><label>Investable assets today</label><div class="inputwrap">$<input type="number" data-path="brad.assets"></div></div>
         <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap">$<input type="number" data-path="brad.income"></div></div>
-        <div class="fieldrow"><label>Current monthly investing<span class="hint">401k + Roth + HSA + brokerage</span></label><div class="inputwrap">$<input type="number" data-path="brad.contribMonthly"></div></div>
+        <table class="acct-table">
+          <thead><tr><th style="text-align:left;">Brad's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
+          <tbody>
+            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="brad.accounts.traditional.balance"></td><td>$<input type="number" data-path="brad.accounts.traditional.monthly"></td></tr>
+            <tr><td>Roth 401(k)/IRA</td><td>$<input type="number" data-path="brad.accounts.roth.balance"></td><td>$<input type="number" data-path="brad.accounts.roth.monthly"></td></tr>
+            <tr><td>HSA</td><td>$<input type="number" data-path="brad.accounts.hsa.balance"></td><td>$<input type="number" data-path="brad.accounts.hsa.monthly"></td></tr>
+            <tr><td>Brokerage</td><td>$<input type="number" data-path="brad.accounts.brokerage.balance"></td><td>$<input type="number" data-path="brad.accounts.brokerage.monthly"></td></tr>
+            <tr class="acct-total"><td>Total</td><td class="num" id="brad-assets-total">n/a</td><td class="num" id="brad-contrib-total">n/a</td></tr>
+          </tbody>
+        </table>
         <div class="personhead wes">Wes</div>
         <div class="fieldrow"><label>Birthday<span class="hint" id="wes-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="wes.dob"></div></div>
         <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="wes.retireAge"></div></div>
-        <div class="fieldrow"><label>Investable assets today</label><div class="inputwrap">$<input type="number" data-path="wes.assets"></div></div>
         <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap">$<input type="number" data-path="wes.income"></div></div>
-        <div class="fieldrow"><label>Current monthly investing<span class="hint">401k match included</span></label><div class="inputwrap">$<input type="number" data-path="wes.contribMonthly"></div></div>
+        <table class="acct-table">
+          <thead><tr><th style="text-align:left;">Wes's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
+          <tbody>
+            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="wes.accounts.traditional.balance"></td><td>$<input type="number" data-path="wes.accounts.traditional.monthly"></td></tr>
+            <tr><td>Roth 401(k)/IRA</td><td>$<input type="number" data-path="wes.accounts.roth.balance"></td><td>$<input type="number" data-path="wes.accounts.roth.monthly"></td></tr>
+            <tr><td>HSA</td><td>$<input type="number" data-path="wes.accounts.hsa.balance"></td><td>$<input type="number" data-path="wes.accounts.hsa.monthly"></td></tr>
+            <tr><td>Brokerage</td><td>$<input type="number" data-path="wes.accounts.brokerage.balance"></td><td>$<input type="number" data-path="wes.accounts.brokerage.monthly"></td></tr>
+            <tr class="acct-total"><td>Total</td><td class="num" id="wes-assets-total">n/a</td><td class="num" id="wes-contrib-total">n/a</td></tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="card">
         <h3>Real estate</h3>
-        <div class="sub">Values and balances are placeholders. Fill in real numbers for an accurate net worth.</div>
-        <div class="personhead">6225 Cheryl Drive · primary, owned jointly</div>
+        <div class="sub">Values are placeholders. Mortgage figures for the primary home are filled in from your September statement.</div>
+        <div class="personhead">6225 Cheryl Drive &middot; primary, owned jointly</div>
+        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.purchasePrice"></div></div>
         <div class="fieldrow"><label>Current home value</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.value" id="in-primary-value"></div></div>
         <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.balance" id="in-primary-balance"></div></div>
-        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.1" data-path="realEstate.primary.rate" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Monthly payment (P&amp;I)</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.payment"></div></div>
-        <div class="personhead wes">4016 Georgia Ave Unit 1 · rental, Wes's</div>
+        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.primary.rate" data-pct="1">%</div></div>
+        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.piPayment"></div></div>
+        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.escrow"></div></div>
+        <div class="fieldrow"><label>Total monthly payment</label><div class="inputwrap"><span id="primary-total-payment" style="font-weight:600;">n/a</span></div></div>
+        <div class="personhead wes">4016 Georgia Ave Unit 1 &middot; rental, Wes's</div>
+        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.purchasePrice"></div></div>
         <div class="fieldrow"><label>Current property value</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.value" id="in-rental-value"></div></div>
         <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.balance" id="in-rental-balance"></div></div>
-        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.1" data-path="realEstate.rental.rate" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Monthly payment (P&amp;I)</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.payment"></div></div>
+        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.rental.rate" data-pct="1">%</div></div>
+        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.piPayment"></div></div>
+        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.escrow"></div></div>
         <div class="fieldrow"><label>Monthly rent collected</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.rentIncome"></div></div>
-        <div class="fieldrow"><label>Monthly expenses<span class="hint">HOA, insurance, property tax</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.expenses"></div></div>
+        <div class="fieldrow"><label>Monthly expenses<span class="hint">HOA, insurance, property tax, on top of escrow</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.expenses"></div></div>
         <div class="fieldrow"><label>Net rental cash flow</label><div class="inputwrap"><span id="rental-cashflow" style="font-weight:600;">n/a</span></div></div>
       </div>
 
@@ -452,7 +483,7 @@
       <div class="card">
         <h3>Tax treatment</h3>
         <div class="sub">A simplified model: no true bucket-by-bucket tracking, but it grosses up your required nest egg to cover taxes owed on withdrawals.</div>
-        <div class="fieldrow"><label>Share of investable assets that's pre-tax<span class="hint">401(k), traditional IRA, etc, vs. Roth or taxable</span></label><div class="inputwrap"><input type="number" step="1" data-path="tax.traditionalFraction" data-pct="1">%</div></div>
+        <div class="fieldrow"><label>Share of investable assets that's pre-tax<span class="hint">computed from your account balances above</span></label><div class="inputwrap"><span id="tax-trad-fraction" style="font-weight:600;">n/a</span></div></div>
         <div class="fieldrow"><label>Effective tax rate on those withdrawals<span class="hint">blended rate you'd actually pay</span></label><div class="inputwrap"><input type="number" step="1" data-path="tax.effectiveTaxRate" data-pct="1">%</div></div>
       </div>
 
@@ -510,14 +541,30 @@
     </div>
 
     <div class="card" style="margin-top:16px;">
-      <h3>Your debts</h3>
-      <div class="sub">Edit balance, rate, and payment for each. Payoff order and dates update instantly.</div>
+      <div class="rowbar">
+        <div>
+          <h3>Your debts</h3>
+          <div class="sub" style="margin-bottom:0;">Edit balance, rate, and payment for each, or add a new line for anything not listed. Payoff order and dates update instantly.</div>
+        </div>
+        <button id="debt-add-btn" class="btn">+ Add debt</button>
+      </div>
       <div class="tablewrap" style="max-height:none;">
         <table style="table-layout:auto;">
           <thead>
-            <tr><th style="text-align:left;">Debt</th><th>Balance</th><th>Rate</th><th>Monthly payment</th><th>Payoff order</th><th>Payoff date</th><th>Interest paid</th></tr>
+            <tr><th style="text-align:left;">Debt</th><th>Balance</th><th>Rate</th><th>Monthly payment</th><th>Payoff order</th><th>Payoff date</th><th>Interest paid</th><th></th></tr>
           </thead>
           <tbody id="debt-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Mortgages</h3>
+      <div class="sub">Shown for a complete debt picture, but intentionally left out of the payoff strategy above. A mortgage is a low, often tax-advantaged rate secured against an appreciating asset that's already tracked in your net worth via home equity. Paying it off early is a different decision than clearing a credit card, and isn't something this tool tries to optimize for you.</div>
+      <div class="tablewrap" style="max-height:none;">
+        <table style="table-layout:auto;">
+          <thead><tr><th style="text-align:left;">Property</th><th>Balance</th><th>Rate</th><th>Monthly P&amp;I</th><th>Monthly escrow</th></tr></thead>
+          <tbody id="mortgage-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -632,7 +679,7 @@
     <div class="card" style="margin-top:16px;">
       <h3>Tax treatment (simplified)</h3>
       <div class="sub" style="margin-bottom:0;">
-        This is a gross-up, not real bucket-by-bucket account tracking. You tell it what share of your investable assets is pre-tax (401(k), traditional IRA) versus Roth or taxable, and an effective tax rate you'd expect to pay on withdrawals from the pre-tax share. Every required nest egg is then inflated to cover that expected tax drag: <code>tax-adjusted SWR = SWR &times; (1 &minus; pre-tax share &times; effective tax rate)</code>, and that adjusted rate is used everywhere in place of the raw safe withdrawal rate. It does not model tax brackets, Roth conversion ladders, or account-specific withdrawal ordering.
+        This is a gross-up, not real bucket-by-bucket account tracking. The pre-tax share is computed automatically from your account balances on the Inputs tab (traditional 401(k)/IRA balances &divide; total investable assets), and you set an effective tax rate you'd expect to pay on withdrawals from that pre-tax share. Every required nest egg is then inflated to cover that expected tax drag: <code>tax-adjusted SWR = SWR &times; (1 &minus; pre-tax share &times; effective tax rate)</code>, and that adjusted rate is used everywhere in place of the raw safe withdrawal rate. It does not model tax brackets, Roth conversion ladders, or account-specific withdrawal ordering.
       </div>
     </div>
 
@@ -674,11 +721,21 @@
 <script>
 /* ===================== STATE ===================== */
 const state = {
-  brad: { dob:'1990-11-14', retireAge:50, assets:450000, income:180000, contribMonthly: 2889.32 },
-  wes:  { dob:'1987-01-08', retireAge:65, assets:80000,  income:125000, contribMonthly: 730 },
+  brad: { dob:'1990-11-14', retireAge:50, income:180000, accounts:{
+    traditional:{ balance:450000, monthly:871 },
+    roth:{ balance:0, monthly:1451.66 },
+    hsa:{ balance:0, monthly:366.66 },
+    brokerage:{ balance:0, monthly:200 }
+  }},
+  wes: { dob:'1987-01-08', retireAge:65, income:125000, accounts:{
+    traditional:{ balance:80000, monthly:730 },
+    roth:{ balance:0, monthly:0 },
+    hsa:{ balance:0, monthly:0 },
+    brokerage:{ balance:0, monthly:0 }
+  }},
   realEstate: {
-    primary: { value:0, balance:0, rate:0.065, payment:2902.27, ownership:{brad:0.5, wes:0.5} },
-    rental:  { value:0, balance:0, rate:0.065, payment:1933.00, rentIncome:1700, expenses:535.37 }
+    primary: { purchasePrice:0, value:0, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
+    rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
   },
   assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15 },
   fire: { lean:109500, traditional:114000, chubby:142500, fat:171000, baristaIncome:0 },
@@ -709,6 +766,19 @@ function setPath(obj, path, val){
   const keys = path.split('.'); let o = obj;
   for(let i=0;i<keys.length-1;i++) o = o[keys[i]];
   o[keys[keys.length-1]] = val;
+}
+function personAssets(who){
+  const a = state[who].accounts;
+  return a.traditional.balance + a.roth.balance + a.hsa.balance + a.brokerage.balance;
+}
+function personContrib(who){
+  const a = state[who].accounts;
+  return a.traditional.monthly + a.roth.monthly + a.hsa.monthly + a.brokerage.monthly;
+}
+function computedTraditionalFraction(){
+  const tradTotal = state.brad.accounts.traditional.balance + state.wes.accounts.traditional.balance;
+  const total = personAssets('brad') + personAssets('wes');
+  return total>0 ? tradTotal/total : 0;
 }
 function ageFromDob(dobStr, today){
   const dob = new Date(dobStr+'T00:00:00');
@@ -754,8 +824,8 @@ function project(scenarioKey){
   const wesAge0 = ageFromDob(S.wes.dob, today);
   const year0 = today.getFullYear();
 
-  let bradAssets = S.brad.assets;
-  let wesAssets = S.wes.assets;
+  let bradAssets = personAssets('brad');
+  let wesAssets = personAssets('wes');
   let homeValue = S.realEstate.primary.value;
   let homeBalance = S.realEstate.primary.balance;
   let rentalValue = S.realEstate.rental.value;
@@ -769,17 +839,17 @@ function project(scenarioKey){
     if(i>0){
       let bradContrib=0, wesContrib=0;
       if(bradAge < S.brad.retireAge){
-        if(scenarioKey==='continue') bradContrib = S.brad.contribMonthly*12;
-        else if(scenarioKey==='increase') bradContrib = S.brad.contribMonthly*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+        if(scenarioKey==='continue') bradContrib = personContrib('brad')*12;
+        else if(scenarioKey==='increase') bradContrib = personContrib('brad')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
       }
       if(wesAge < S.wes.retireAge){
-        if(scenarioKey==='continue') wesContrib = S.wes.contribMonthly*12;
-        else if(scenarioKey==='increase') wesContrib = S.wes.contribMonthly*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+        if(scenarioKey==='continue') wesContrib = personContrib('wes')*12;
+        else if(scenarioKey==='increase') wesContrib = personContrib('wes')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
       }
       bradAssets = bradAssets*(1+S.assumptions.investmentReturn) + bradContrib;
       wesAssets = wesAssets*(1+S.assumptions.investmentReturn) + wesContrib;
-      homeBalance = amortizeYear(homeBalance, S.realEstate.primary.rate, S.realEstate.primary.payment);
-      rentalBalance = amortizeYear(rentalBalance, S.realEstate.rental.rate, S.realEstate.rental.payment);
+      homeBalance = amortizeYear(homeBalance, S.realEstate.primary.rate, S.realEstate.primary.piPayment);
+      rentalBalance = amortizeYear(rentalBalance, S.realEstate.rental.rate, S.realEstate.rental.piPayment);
       homeValue *= (1+S.assumptions.homeAppreciation);
       rentalValue *= (1+S.assumptions.homeAppreciation);
     }
@@ -821,7 +891,7 @@ function otherIncomeAt(bradAge, wesAge, yearOffset){
 }
 function taxAdjustedSWR(){
   const T = state.tax;
-  return state.assumptions.swr * (1 - T.traditionalFraction*T.effectiveTaxRate);
+  return state.assumptions.swr * (1 - computedTraditionalFraction()*T.effectiveTaxRate);
 }
 function healthcareCostAt(bradAge, wesAge, yearOffset){
   const H = state.healthcare, A = state.assumptions;
@@ -870,7 +940,7 @@ function buildFireSeries(type, rowsByScenario){
   });
   const targetVals = rowsByScenario.continue.map(row=>requiredNestEgg(type, row, futureTradNumber, iRetire));
   const number0 = targetVals[0];
-  const progress = number0>0 ? Math.min(state.brad.assets+state.wes.assets, number0)/number0 : 0;
+  const progress = number0>0 ? Math.min(personAssets('brad')+personAssets('wes'), number0)/number0 : 0;
   return { years: rowsByScenario.continue.map(r=>r.year), series, targetVals, achieved, numberToday:number0, progress };
 }
 
@@ -882,12 +952,12 @@ function renderDashboard(){
   document.getElementById('dash-sub').textContent =
     'Brad is '+bradAge+', targeting retirement at '+state.brad.retireAge+'. Wes is '+wesAge+', targeting '+state.wes.retireAge+'. Today is '+today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'.';
 
-  const combinedAssets = state.brad.assets+state.wes.assets;
+  const combinedAssets = personAssets('brad')+personAssets('wes');
   const homeEquity = Math.max(state.realEstate.primary.value-state.realEstate.primary.balance,0);
   const rentalEquity = Math.max(state.realEstate.rental.value-state.realEstate.rental.balance,0);
   const netWorth = combinedAssets+homeEquity+rentalEquity;
   const combinedIncome = state.brad.income+state.wes.income;
-  const combinedContrib = (state.brad.contribMonthly+state.wes.contribMonthly)*12;
+  const combinedContrib = (personContrib('brad')+personContrib('wes'))*12;
 
   document.getElementById('stat-networth').textContent = fmt$(netWorth);
   document.getElementById('stat-assets').textContent = fmt$(combinedAssets);
@@ -1052,7 +1122,7 @@ function runMonteCarlo(nSims){
 
   const trajectories = [];
   for(let s=0; s<nSims; s++){
-    let bradAssets = state.brad.assets, wesAssets = state.wes.assets;
+    let bradAssets = personAssets('brad'), wesAssets = personAssets('wes');
     const traj = [];
     const foundThisSim = {}; types.forEach(t=>foundThisSim[t]=false);
     for(let i=0;i<HORIZON;i++){
@@ -1060,8 +1130,8 @@ function runMonteCarlo(nSims){
       if(i>0){
         const r = randNormal(A.investmentReturn, A.returnStdev);
         let bradContrib=0, wesContrib=0;
-        if(bradAge < state.brad.retireAge) bradContrib = (state.brad.contribMonthly)*12;
-        if(wesAge < state.wes.retireAge) wesContrib = (state.wes.contribMonthly)*12;
+        if(bradAge < state.brad.retireAge) bradContrib = personContrib('brad')*12;
+        if(wesAge < state.wes.retireAge) wesContrib = personContrib('wes')*12;
         bradAssets = Math.max(bradAssets*(1+r)+bradContrib, 0);
         wesAssets = Math.max(wesAssets*(1+r)+wesContrib, 0);
       }
@@ -1227,18 +1297,39 @@ function renderDebt(){
   document.getElementById('debt-tbody').innerHTML = state.debts.map(sd=>{
     const d = R.debts.find(x=>x.id===sd.id);
     const rank = orderIds.indexOf(sd.id)+1;
+    const idx = state.debts.indexOf(sd);
     const payoffLabel = d.paidOffMonth ? new Date(new Date().getFullYear(), new Date().getMonth()+d.paidOffMonth, 1).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : (sd.balance<=0 ? 'Already paid off' : 'Beyond horizon');
     return `<tr>
-      <td style="text-align:left; font-weight:600;">${sd.name}</td>
-      <td class="num">$<input type="number" data-path="debts.${state.debts.indexOf(sd)}.balance" style="width:90px;"></td>
-      <td class="num"><input type="number" step="0.1" data-path="debts.${state.debts.indexOf(sd)}.rate" data-pct="1" style="width:56px;">%</td>
-      <td class="num">$<input type="number" data-path="debts.${state.debts.indexOf(sd)}.payment" style="width:80px;"></td>
+      <td style="text-align:left;"><input type="text" data-path="debts.${idx}.name" style="width:150px; text-align:left; font-weight:600;"></td>
+      <td class="num">$<input type="number" data-path="debts.${idx}.balance" style="width:90px;"></td>
+      <td class="num"><input type="number" step="0.01" data-path="debts.${idx}.rate" data-pct="1" style="width:64px;">%</td>
+      <td class="num">$<input type="number" data-path="debts.${idx}.payment" style="width:80px;"></td>
       <td style="text-align:center;">#${rank}</td>
       <td style="text-align:center;">${payoffLabel}</td>
       <td class="num">${fmt$(d.totalInterest)}</td>
+      <td style="text-align:center;"><span class="debt-remove" data-id="${sd.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove this debt">&times;</span></td>
     </tr>`;
   }).join('');
   document.querySelectorAll('#debt-tbody [data-path]').forEach(bindOne);
+  document.querySelectorAll('.debt-remove').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.debts = state.debts.filter(d=>d.id!==el.dataset.id);
+      saveState();
+      renderDebt();
+    });
+  });
+
+  const RE = state.realEstate;
+  document.getElementById('mortgage-tbody').innerHTML = [
+    { label:"6225 Cheryl Drive (primary)", p:RE.primary },
+    { label:"4016 Georgia Ave Unit 1 (rental)", p:RE.rental }
+  ].map(m=>`<tr>
+    <td style="text-align:left; font-weight:600;">${m.label}</td>
+    <td class="num">${fmt$full(m.p.balance)}</td>
+    <td class="num">${(m.p.rate*100).toFixed(3)}%</td>
+    <td class="num">${fmt$full(m.p.piPayment)}</td>
+    <td class="num">${fmt$full(m.p.escrow)}</td>
+  </tr>`).join('');
 }
 
 /* ===================== RENDER: BUDGET ===================== */
@@ -1249,8 +1340,8 @@ function renderBudget(){
   const essential = state.fire.lean/12;
   const discretionary = Math.max(state.fire.traditional-state.fire.lean,0)/12;
   const debtPay = state.debts.reduce((s,d)=>s+d.payment,0);
-  const investing = state.brad.contribMonthly+state.wes.contribMonthly;
-  const rentalCosts = state.realEstate.rental.payment+state.realEstate.rental.expenses;
+  const investing = personContrib('brad')+personContrib('wes');
+  const rentalCosts = state.realEstate.rental.piPayment+state.realEstate.rental.escrow+state.realEstate.rental.expenses;
   const outflowsKnown = taxes+essential+discretionary+debtPay+investing+rentalCosts;
   const surplus = incomeTotal-outflowsKnown;
 
@@ -1310,9 +1401,15 @@ function renderInputsLive(){
   const today = new Date();
   document.getElementById('brad-age-hint').textContent = 'currently '+ageFromDob(state.brad.dob,today);
   document.getElementById('wes-age-hint').textContent = 'currently '+ageFromDob(state.wes.dob,today);
-  const cf = state.realEstate.rental.rentIncome - state.realEstate.rental.expenses - state.realEstate.rental.payment;
+  const cf = state.realEstate.rental.rentIncome - state.realEstate.rental.expenses - state.realEstate.rental.piPayment - state.realEstate.rental.escrow;
   document.getElementById('rental-cashflow').textContent = fmt$full(cf)+'/mo';
   document.getElementById('rental-cashflow').style.color = cf<0 ? 'var(--rust)' : 'var(--green)';
+  document.getElementById('primary-total-payment').textContent = fmt$full(state.realEstate.primary.piPayment+state.realEstate.primary.escrow)+'/mo';
+  document.getElementById('brad-assets-total').textContent = fmt$full(personAssets('brad'));
+  document.getElementById('brad-contrib-total').textContent = fmt$full(personContrib('brad'))+'/mo';
+  document.getElementById('wes-assets-total').textContent = fmt$full(personAssets('wes'));
+  document.getElementById('wes-contrib-total').textContent = fmt$full(personContrib('wes'))+'/mo';
+  document.getElementById('tax-trad-fraction').textContent = (computedTraditionalFraction()*100).toFixed(0)+'%';
 
   ['in-primary-value','in-primary-balance'].forEach(id=>{
     document.getElementById(id).classList.toggle('placeholder-empty', Number(document.getElementById(id).value)===0);
@@ -1339,8 +1436,15 @@ function deepMerge(target, source){
     }
   }
 }
+let saveFlashTimer = null;
 function saveState(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  const ind = document.getElementById('save-indicator');
+  if(ind){
+    ind.style.opacity = '1';
+    clearTimeout(saveFlashTimer);
+    saveFlashTimer = setTimeout(()=>{ ind.style.opacity='0'; }, 1400);
+  }
 }
 function loadState(){
   try{
@@ -1354,14 +1458,18 @@ function bindOne(el){
   const isPct = el.dataset.pct==='1';
   const isDate = el.type==='date';
   const isCheck = el.type==='checkbox';
+  const isText = el.type==='text';
   let val = getPath(state, path);
   if(isCheck) el.checked = !!val;
-  else el.value = isDate ? val : (isPct ? Number((val*100).toFixed(2)) : val);
+  else el.value = (isDate || isText) ? val : (isPct ? Number((val*100).toFixed(2)) : val);
+  if(el.type==='number' || el.type==='text'){
+    el.addEventListener('focus', ()=> el.select());
+  }
   el.addEventListener(isCheck ? 'change' : 'input', ()=>{
     let v;
     if(isCheck){
       v = el.checked;
-    } else if(isDate){
+    } else if(isDate || isText){
       v = el.value;
     } else {
       v = parseFloat(el.value);
@@ -1426,6 +1534,11 @@ document.getElementById('debt-strategy-pills').addEventListener('click', (e)=>{
   renderDebt();
 });
 document.getElementById('mc-run-btn').addEventListener('click', renderMonteCarloResults);
+document.getElementById('debt-add-btn').addEventListener('click', ()=>{
+  state.debts.push({ id:'debt'+Date.now(), name:'New debt', balance:0, rate:0.06, payment:0 });
+  saveState();
+  renderDebt();
+});
 
 /* ===================== INIT ===================== */
 loadState();
