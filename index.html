@@ -47,7 +47,7 @@
     --rust:#A2532E;
     --rust-wash:#F5E5DB;
     --green:#3F6B52;
-    --radius:10px;
+    --radius:12px;
     --font-head:'Arvo', Georgia, 'Iowan Old Style', serif;
     --font-body:'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   }
@@ -58,12 +58,12 @@
     color:var(--ink);
     font-family:var(--font-body);
     font-size:14px;
-    line-height:1.5;
+    line-height:1.42;
     min-height:100vh;
   }
   h1,h2,h3,h4{
     font-family:var(--font-head);
-    font-weight:400;
+    font-weight:700;
     margin:0;
     color:var(--ink);
   }
@@ -142,10 +142,11 @@
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:18px 20px;
+    box-shadow:0 1px 3px rgba(30,49,40,0.05);
   }
   .card + .card{ margin-top:16px; }
-  .card h3{ font-size:15px; margin-bottom:2px; }
-  .card .sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:14px; }
+  .card h3{ font-size:15px; margin-bottom:9px; padding-bottom:9px; border-bottom:1px solid var(--line-soft); }
+  .card .sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:10px; line-height:1.4; }
 
   /* Stat strip */
   .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
@@ -155,7 +156,7 @@
     border-radius:var(--radius);
     padding:16px 18px;
   }
-  .stat .label{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; font-variant:small-caps; letter-spacing:.04em; font-weight:600; }
+  .stat .label{ font-size:10.5px; color:var(--ink-soft); margin-bottom:7px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; }
   .stat .value{ font-family:var(--font-head); font-size:25px; }
   .stat .value.teal{ color:var(--teal-dark); }
 
@@ -167,7 +168,7 @@
   }
   .pill.active{ background:var(--ink); color:#fff; }
 
-  .rowbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+  .rowbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
 
   /* FIRE cards grid */
   .firegrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:16px; margin-top:16px; }
@@ -189,7 +190,7 @@
 
   /* Inputs page */
   .formgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:18px; }
-  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 12px; border-radius:8px; margin:0 -12px; }
+  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:7px 12px; border-radius:8px; margin:0 -12px; }
   .fieldrow:hover{ background:var(--bg); }
   .fieldrow label{ font-size:13px; color:var(--ink-soft); flex:1.3; }
   .fieldrow .hint{ display:block; font-size:11px; color:var(--ink-faint); margin-top:1px; }
@@ -201,6 +202,7 @@
     transition:border-color .12s, box-shadow .12s;
   }
   input[type=date]{ width:148px; text-align:left; }
+  input[type=checkbox]{ width:16px; height:16px; accent-color:var(--teal); cursor:pointer; }
   input:hover{ border-color:var(--ink-faint); }
   input:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-wash); }
   .placeholder-empty{ border-color:var(--rust); background:var(--rust-wash); }
@@ -221,10 +223,11 @@
 
   /* Projection table */
   .tablewrap{ max-height:560px; overflow:auto; border:1px solid var(--line); border-radius:var(--radius); margin-top:14px;}
-  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; table-layout:fixed; }
   thead th{
-    position:sticky; top:0; background:var(--ink); color:#fff; text-align:right; padding:9px 10px;
-    font-weight:600; white-space:nowrap; z-index:1; font-variant:small-caps; letter-spacing:.03em;
+    position:sticky; top:0; background:var(--ink); color:#fff; text-align:right; padding:8px 8px;
+    font-weight:600; white-space:normal; z-index:1; text-transform:uppercase; letter-spacing:.03em; font-size:10.5px;
+    line-height:1.25; vertical-align:middle;
   }
   thead th:first-child, thead th:nth-child(2), thead th:nth-child(3){ text-align:left; }
   tbody td{ padding:7px 10px; text-align:right; border-bottom:1px solid var(--line-soft); white-space:nowrap; }
@@ -238,8 +241,10 @@
     font-family:var(--font-head); font-style:italic; margin-left:5px; cursor:help; vertical-align:middle;
   }
   .infodot:hover{ background:var(--teal); color:#fff; }
-  .definitions{ display:flex; flex-wrap:wrap; gap:16px 28px; font-size:12px; color:var(--ink-soft); margin:2px 0 16px; line-height:1.5; }
-  .definitions b{ color:var(--ink); font-weight:600; }
+  .definitions{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:8px 26px; font-size:12px; color:var(--ink-soft); margin:2px 0 14px; line-height:1.35; }
+  .definitions div{ display:flex; align-items:baseline; gap:7px; }
+  .definitions i{ width:7px; height:7px; border-radius:50%; flex:0 0 auto; display:inline-block; }
+  .definitions b{ color:var(--ink); font-weight:700; margin-right:5px; white-space:nowrap; }
   .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--ink-soft); margin:4px 0 2px; }
   .legend span{ display:inline-flex; align-items:center; gap:5px; }
   .swatch{ width:10px; height:10px; border-radius:2px; display:inline-block; }
@@ -308,16 +313,16 @@
             <div class="pill" data-scn="continue" title="Assumes you keep investing the same dollar amount per month that you are today, every year, with no increase.">Keep current pace</div>
             <div class="pill" data-scn="increase" title="Assumes your monthly investing grows every year by the rate set below, similar to how the IRS 401(k) contribution limit tends to rise.">Increase over time</div>
           </div>
-          <div style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
-            by <input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1" style="width:56px;">% / yr
+          <div id="increase-rate-box" style="display:none; font-size:12px; color:var(--ink-soft); align-items:center; gap:5px; background:var(--gold-wash); border-radius:99px; padding:5px 12px 5px 10px;">
+            by <input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1" style="width:52px;">% / yr
           </div>
         </div>
       </div>
       <div class="definitions">
-        <div><b>Stop investing:</b> no new contributions from today. Assets grow from returns only.</div>
-        <div><b>Keep current pace:</b> your monthly investing stays flat at today's amount.</div>
-        <div><b>Increase over time:</b> your monthly investing grows each year by the rate above.</div>
-        <div><b>Target needed:</b> the portfolio size required to fund that FIRE type's spending using a 4% withdrawal rate.</div>
+        <div><i style="background:#A2532E"></i><b>Stop investing</b>No new contributions from today. Assets grow from returns only.</div>
+        <div><i style="background:#3F6B52"></i><b>Keep current pace</b>Monthly investing stays flat at today's amount.</div>
+        <div><i style="background:#5A6B95"></i><b>Increase over time</b>Monthly investing grows each year by the rate above.</div>
+        <div><i style="background:var(--ink-faint)"></i><b>Target needed</b>Portfolio size required to fund that spending at a 4% withdrawal rate.</div>
       </div>
       <div class="chartwrap chartbig"><canvas id="chart-networth"></canvas></div>
     </div>
@@ -342,7 +347,7 @@
   <section class="section" id="section-inputs">
     <div class="pagehead">
       <h1>Inputs</h1>
-      <p>Everything here is live. Change a number and the Dashboard and Projection pages update immediately.</p>
+      <p>Everything here is live. Change a number and the Dashboard and Projection pages update immediately. Everything you enter is saved automatically in this browser, so it's still here next time you open this page even after closing the tab. <a href="#" id="reset-inputs-link" style="color:var(--rust);">Reset all inputs to defaults</a></p>
     </div>
 
     <div class="formgrid">
@@ -400,6 +405,7 @@
         <div class="sub">Annual spending in today's dollars, pre-filled from your budget. Edit freely.</div>
         <div class="fieldrow"><label>Lean FIRE<span class="hint">essentials only</span></label><div class="inputwrap">$<input type="number" data-path="fire.lean"></div></div>
         <div class="fieldrow"><label>Traditional FIRE<span class="hint">essentials + discretionary, also used for Coast and Barista</span></label><div class="inputwrap">$<input type="number" data-path="fire.traditional"></div></div>
+        <div class="fieldrow"><label>Chubby FIRE<span class="hint">real comfort, between Traditional and Fat</span></label><div class="inputwrap">$<input type="number" data-path="fire.chubby"></div></div>
         <div class="fieldrow"><label>Fat FIRE<span class="hint">a more comfortable lifestyle</span></label><div class="inputwrap">$<input type="number" data-path="fire.fat"></div></div>
         <div class="fieldrow"><label>Barista part-time income<span class="hint">offsets Traditional's spending target</span></label><div class="inputwrap">$<input type="number" data-path="fire.baristaIncome"></div></div>
       </div>
@@ -411,6 +417,36 @@
         <div class="fieldrow"><label>Brad's Social Security estimate<span class="hint">annual, today's $</span></label><div class="inputwrap">$<input type="number" data-path="futureIncome.ssBrad"></div></div>
         <div class="fieldrow"><label>Wes's Social Security estimate<span class="hint">annual, today's $</span></label><div class="inputwrap">$<input type="number" data-path="futureIncome.ssWes"></div></div>
         <div class="fieldrow"><label>Social Security start age</label><div class="inputwrap"><input type="number" data-path="futureIncome.ssStartAge"></div></div>
+      </div>
+
+      <div class="card">
+        <h3>Tax treatment</h3>
+        <div class="sub">A simplified model: no true bucket-by-bucket tracking, but it grosses up your required nest egg to cover taxes owed on withdrawals.</div>
+        <div class="fieldrow"><label>Share of investable assets that's pre-tax<span class="hint">401(k), traditional IRA, etc, vs. Roth or taxable</span></label><div class="inputwrap"><input type="number" step="1" data-path="tax.traditionalFraction" data-pct="1">%</div></div>
+        <div class="fieldrow"><label>Effective tax rate on those withdrawals<span class="hint">blended rate you'd actually pay</span></label><div class="inputwrap"><input type="number" step="1" data-path="tax.effectiveTaxRate" data-pct="1">%</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Health care bridge</h3>
+        <div class="sub">Marketplace premiums between retiring and Medicare at 65, added to spending only during that window for whichever of you it applies to.</div>
+        <div class="fieldrow"><label>Brad: monthly premium if retired before 65</label><div class="inputwrap">$<input type="number" data-path="healthcare.bradMonthly"></div></div>
+        <div class="fieldrow"><label>Wes: monthly premium if retired before 65</label><div class="inputwrap">$<input type="number" data-path="healthcare.wesMonthly"></div></div>
+      </div>
+
+      <div class="card">
+        <h3>Emergency fund</h3>
+        <div class="sub">Tracked separately from your investable assets and FIRE progress.</div>
+        <div class="fieldrow"><label>Target coverage</label><div class="inputwrap"><input type="number" data-path="emergencyFund.targetMonths"> months</div></div>
+        <div class="fieldrow"><label>Current balance</label><div class="inputwrap">$<input type="number" data-path="emergencyFund.currentBalance"></div></div>
+        <div class="fieldrow"><label>Coverage today</label><div class="inputwrap"><span id="ef-coverage" style="font-weight:600;">n/a</span></div></div>
+      </div>
+
+      <div class="card">
+        <h3>Insurance</h3>
+        <div class="sub">A simple checklist, not a calculation. Check what you currently carry.</div>
+        <div class="fieldrow"><label>Life insurance</label><div class="inputwrap"><input type="checkbox" data-path="insurance.life"></div></div>
+        <div class="fieldrow"><label>Disability insurance</label><div class="inputwrap"><input type="checkbox" data-path="insurance.disability"></div></div>
+        <div class="fieldrow"><label>Umbrella policy</label><div class="inputwrap"><input type="checkbox" data-path="insurance.umbrella"></div></div>
       </div>
     </div>
   </section>
@@ -437,6 +473,12 @@
       </div>
       <div class="tablewrap">
         <table>
+          <colgroup>
+            <col style="width:7%"><col style="width:6%"><col style="width:6%">
+            <col style="width:10%"><col style="width:10%"><col style="width:11%">
+            <col style="width:9%"><col style="width:9%">
+            <col style="width:11%"><col style="width:11%"><col style="width:10%">
+          </colgroup>
           <thead>
             <tr>
               <th>Year</th><th>Brad</th><th>Wes</th>
@@ -463,8 +505,12 @@ const state = {
     rental:  { value:0, balance:0, rate:0.065, payment:1933.00, rentIncome:1700, expenses:535.37 }
   },
   assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03 },
-  fire: { lean:109500, traditional:114000, fat:171000, baristaIncome:0 },
-  futureIncome: { pensionWes:0, pensionStartAge:62, ssBrad:0, ssWes:0, ssStartAge:67 }
+  fire: { lean:109500, traditional:114000, chubby:142500, fat:171000, baristaIncome:0 },
+  futureIncome: { pensionWes:0, pensionStartAge:62, ssBrad:0, ssWes:0, ssStartAge:67 },
+  tax: { traditionalFraction:0.6, effectiveTaxRate:0.15 },
+  healthcare: { bradMonthly:0, wesMonthly:0 },
+  emergencyFund: { targetMonths:6, currentBalance:0 },
+  insurance: { life:false, disability:false, umbrella:false }
 };
 
 const HORIZON = 56;
@@ -575,6 +621,7 @@ function fireSpendingToday(type){
   const S = state;
   if(type==='lean') return S.fire.lean;
   if(type==='traditional' || type==='coast') return S.fire.traditional;
+  if(type==='chubby') return S.fire.chubby;
   if(type==='fat') return S.fire.fat;
   if(type==='barista') return Math.max(S.fire.traditional - S.fire.baristaIncome, 0);
   return 0;
@@ -588,6 +635,18 @@ function otherIncomeAt(bradAge, wesAge, yearOffset){
   if(wesAge >= S.ssStartAge) inc += S.ssWes*infl;
   return inc;
 }
+function taxAdjustedSWR(){
+  const T = state.tax;
+  return state.assumptions.swr * (1 - T.traditionalFraction*T.effectiveTaxRate);
+}
+function healthcareCostAt(bradAge, wesAge, yearOffset){
+  const H = state.healthcare, A = state.assumptions;
+  const infl = Math.pow(1+A.inflation, yearOffset);
+  let cost = 0;
+  if(bradAge < 65 && bradAge >= state.brad.retireAge) cost += H.bradMonthly*12*infl;
+  if(wesAge < 65 && wesAge >= state.wes.retireAge) cost += H.wesMonthly*12*infl;
+  return cost;
+}
 function requiredNestEgg(type, row, futureTradNumber, iRetire){
   const A = state.assumptions;
   if(type==='coast'){
@@ -595,9 +654,9 @@ function requiredNestEgg(type, row, futureTradNumber, iRetire){
     return futureTradNumber/Math.pow(1+A.investmentReturn, remaining);
   }
   const spendToday = fireSpendingToday(type);
-  const spendFuture = spendToday*Math.pow(1+A.inflation, row.i);
+  const spendFuture = spendToday*Math.pow(1+A.inflation, row.i) + healthcareCostAt(row.bradAge, row.wesAge, row.i);
   const other = otherIncomeAt(row.bradAge, row.wesAge, row.i);
-  return Math.max(spendFuture-other,0)/A.swr;
+  return Math.max(spendFuture-other,0)/taxAdjustedSWR();
 }
 
 function buildFireSeries(type, rowsByScenario){
@@ -609,7 +668,8 @@ function buildFireSeries(type, rowsByScenario){
     const tradSpend = fireSpendingToday('traditional');
     const rowAtRetire = rowsByScenario.continue[Math.min(iRetire, HORIZON-1)];
     const other = otherIncomeAt(rowAtRetire.bradAge, rowAtRetire.wesAge, iRetire);
-    futureTradNumber = Math.max(tradSpend*Math.pow(1+A.inflation, iRetire)-other,0)/A.swr;
+    const hc = healthcareCostAt(rowAtRetire.bradAge, rowAtRetire.wesAge, iRetire);
+    futureTradNumber = Math.max(tradSpend*Math.pow(1+A.inflation, iRetire)-other+hc,0)/taxAdjustedSWR();
   }
   const series = {};
   const achieved = {};
@@ -686,6 +746,7 @@ const FIRE_META = {
   barista:{ title:'Barista FIRE', desc:'Full lifestyle, partly covered by part-time income.' },
   coast:{ title:'Coast FIRE', desc:'If you had this much invested today and never contributed another dollar, market growth alone would carry it to your full Traditional FIRE number by the time Wes turns 65.' },
   traditional:{ title:'Traditional FIRE', desc:'The standard target: your full current lifestyle.' },
+  chubby:{ title:'Chubby FIRE', desc:'Between Traditional and Fat: real comfort and slack in the budget, without a luxury lifestyle.' },
   fat:{ title:'Fat FIRE', desc:'A more comfortable, higher-spending retirement.' }
 };
 
@@ -774,19 +835,57 @@ function renderInputsLive(){
   ['in-rental-value','in-rental-balance'].forEach(id=>{
     document.getElementById(id).classList.toggle('placeholder-empty', Number(document.getElementById(id).value)===0);
   });
+
+  const monthlyEssential = state.fire.lean/12;
+  const efMonths = monthlyEssential>0 ? state.emergencyFund.currentBalance/monthlyEssential : 0;
+  const efEl = document.getElementById('ef-coverage');
+  efEl.textContent = efMonths.toFixed(1)+' months (target '+state.emergencyFund.targetMonths+')';
+  efEl.style.color = efMonths >= state.emergencyFund.targetMonths ? 'var(--green)' : 'var(--rust)';
 }
 
 /* ===================== BIND INPUTS ===================== */
+const STORAGE_KEY = 'fireTrackerState_v1';
+function deepMerge(target, source){
+  for(const k in source){
+    if(source[k] && typeof source[k]==='object' && !Array.isArray(source[k]) && target[k] && typeof target[k]==='object'){
+      deepMerge(target[k], source[k]);
+    } else {
+      target[k] = source[k];
+    }
+  }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) deepMerge(state, JSON.parse(raw));
+  }catch(e){}
+}
+
 function bindAll(){
   document.querySelectorAll('[data-path]').forEach(el=>{
     const path = el.dataset.path;
     const isPct = el.dataset.pct==='1';
+    const isDate = el.type==='date';
+    const isCheck = el.type==='checkbox';
     let val = getPath(state, path);
-    el.value = isPct ? Number((val*100).toFixed(2)) : val;
-    el.addEventListener('input', ()=>{
-      let v = parseFloat(el.value);
-      if(isNaN(v)) v = 0;
-      setPath(state, path, isPct ? v/100 : v);
+    if(isCheck) el.checked = !!val;
+    else el.value = isDate ? val : (isPct ? Number((val*100).toFixed(2)) : val);
+    el.addEventListener(isCheck ? 'change' : 'input', ()=>{
+      let v;
+      if(isCheck){
+        v = el.checked;
+      } else if(isDate){
+        v = el.value;
+      } else {
+        v = parseFloat(el.value);
+        if(isNaN(v)) v = 0;
+        if(isPct) v = v/100;
+      }
+      setPath(state, path, v);
+      saveState();
       renderInputsLive();
       renderActive();
     });
@@ -814,6 +913,7 @@ document.getElementById('nw-scenario-pills').addEventListener('click', (e)=>{
   document.querySelectorAll('#nw-scenario-pills .pill').forEach(p=>p.classList.remove('active'));
   pill.classList.add('active');
   nwScenario = pill.dataset.scn;
+  document.getElementById('increase-rate-box').style.display = (nwScenario==='increase') ? 'flex' : 'none';
   renderDashboard();
 });
 document.getElementById('proj-scenario-pills').addEventListener('click', (e)=>{
@@ -832,9 +932,17 @@ document.getElementById('proj-horizon-pills').addEventListener('click', (e)=>{
 });
 
 /* ===================== INIT ===================== */
+loadState();
 bindAll();
 renderInputsLive();
 renderDashboard();
+document.getElementById('reset-inputs-link').addEventListener('click', (e)=>{
+  e.preventDefault();
+  if(confirm('Clear everything you have entered and reload the defaults? This cannot be undone.')){
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(err){}
+    location.reload();
+  }
+});
 </script>
 </body>
 </html>
