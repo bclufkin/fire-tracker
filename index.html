@@ -167,6 +167,12 @@
     color:var(--ink-soft); white-space:nowrap;
   }
   .pill.active{ background:var(--ink); color:#fff; }
+  .btn{
+    background:var(--teal); color:#fff; border:none; border-radius:99px; padding:7px 16px;
+    font-size:12.5px; font-family:var(--font-body); font-weight:700; cursor:pointer;
+  }
+  .btn:hover{ background:var(--teal-dark); }
+  .btn:disabled{ background:var(--line); color:var(--ink-faint); cursor:default; }
 
   .rowbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
 
@@ -268,6 +274,8 @@
   <div class="navlist">
     <div class="navitem active" data-section="dashboard"><span class="dot"></span>Dashboard</div>
     <div class="navitem" data-section="inputs"><span class="dot"></span>Inputs</div>
+    <div class="navitem" data-section="debt"><span class="dot"></span>Debt</div>
+    <div class="navitem" data-section="budget"><span class="dot"></span>Budget</div>
     <div class="navitem" data-section="projection"><span class="dot"></span>Projection</div>
   </div>
 </div>
@@ -339,6 +347,22 @@
       <div class="firegrid" id="firegrid"></div>
       <div class="assumptext" style="margin-top:16px;">
         <b>What "today's dollars" means:</b> every spending target on this page (Lean FIRE's $109,500, for example) is stated in today's buying power. The model does not assume you withdraw exactly that many nominal dollars in the future. Instead it inflates the target forward each year (at the inflation rate you set) to find the actual future dollar amount you would need, then compares your projected nominal assets against that inflated number. So $109,500 of Lean FIRE spending means: whatever it costs, years from now, to buy what $109,500 buys today.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="rowbar">
+        <div>
+          <h3>How reliable is this?</h3>
+          <div class="sub">300 simulated markets with randomized year-to-year returns (not a smooth 7% every year), using your "keep current pace" contributions. Shows the range of outcomes, not just one line.</div>
+        </div>
+        <div style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+          volatility <input type="number" step="1" data-path="assumptions.returnStdev" data-pct="1" style="width:52px;">%
+          <button id="mc-run-btn" class="btn" style="margin-left:8px;">Run simulation</button>
+        </div>
+      </div>
+      <div id="mc-body">
+        <div style="font-size:12.5px; color:var(--ink-faint); padding:30px 0; text-align:center;">Click "Run simulation" to see a probability range for each FIRE type.</div>
       </div>
     </div>
   </section>
@@ -451,6 +475,74 @@
     </div>
   </section>
 
+  <!-- ============ DEBT ============ -->
+  <section class="section" id="section-debt">
+    <div class="pagehead">
+      <h1>Debt payoff</h1>
+      <p>Fill in real balances and rates below. These are placeholders using only your known monthly payments.</p>
+    </div>
+
+    <div class="stats" id="debt-stats"></div>
+
+    <div class="card">
+      <div class="rowbar">
+        <div>
+          <h3>Payoff strategy</h3>
+          <div class="sub">Avalanche targets the highest interest rate first (saves the most money). Snowball targets the smallest balance first (faster early wins).</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div class="pillgroup" id="debt-strategy-pills">
+            <div class="pill active" data-strat="avalanche">Avalanche</div>
+            <div class="pill" data-strat="snowball">Snowball</div>
+          </div>
+          <div style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+            extra $<input type="number" id="debt-extra-input" data-path="debtExtra" style="width:70px;"> / mo
+          </div>
+        </div>
+      </div>
+      <div class="chartwrap" style="height:260px;"><canvas id="chart-debt"></canvas></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Your debts</h3>
+      <div class="sub">Edit balance, rate, and payment for each. Payoff order and dates update instantly.</div>
+      <div class="tablewrap" style="max-height:none;">
+        <table style="table-layout:auto;">
+          <thead>
+            <tr><th style="text-align:left;">Debt</th><th>Balance</th><th>Rate</th><th>Monthly payment</th><th>Payoff order</th><th>Payoff date</th><th>Interest paid</th></tr>
+          </thead>
+          <tbody id="debt-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUDGET ============ -->
+  <section class="section" id="section-budget">
+    <div class="pagehead">
+      <h1>Budget and cash flow</h1>
+      <p>Where your household's money comes from and where it goes, every month.</p>
+    </div>
+
+    <div class="stats" id="budget-stats"></div>
+
+    <div class="card">
+      <h3>Monthly cash flow</h3>
+      <div class="sub">Income on the left, where it lands on the right. Band thickness is proportional to dollars.</div>
+      <div id="sankey-wrap" style="width:100%; overflow-x:auto;"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Breakdown</h3>
+      <div class="tablewrap" style="max-height:none;">
+        <table style="table-layout:auto;">
+          <thead><tr><th style="text-align:left;">Category</th><th>Monthly</th><th>Annual</th><th>% of income</th></tr></thead>
+          <tbody id="budget-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ PROJECTION ============ -->
   <section class="section" id="section-projection">
     <div class="pagehead">
@@ -504,13 +596,21 @@ const state = {
     primary: { value:0, balance:0, rate:0.065, payment:2902.27, ownership:{brad:0.5, wes:0.5} },
     rental:  { value:0, balance:0, rate:0.065, payment:1933.00, rentIncome:1700, expenses:535.37 }
   },
-  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03 },
+  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15 },
   fire: { lean:109500, traditional:114000, chubby:142500, fat:171000, baristaIncome:0 },
   futureIncome: { pensionWes:0, pensionStartAge:62, ssBrad:0, ssWes:0, ssStartAge:67 },
-  tax: { traditionalFraction:0.6, effectiveTaxRate:0.15 },
+  tax: { traditionalFraction:0.6, effectiveTaxRate:0.15, incomeTaxRate:0.25 },
   healthcare: { bradMonthly:0, wesMonthly:0 },
   emergencyFund: { targetMonths:6, currentBalance:0 },
-  insurance: { life:false, disability:false, umbrella:false }
+  insurance: { life:false, disability:false, umbrella:false },
+  debts: [
+    { id:'subaru', name:'Subaru Loan', balance:0, rate:0.06, payment:644.76 },
+    { id:'volvo', name:'Volvo Loan', balance:0, rate:0.06, payment:300.00 },
+    { id:'studentBrad', name:"Student Loan (Brad)", balance:0, rate:0.05, payment:435.13 },
+    { id:'studentWes', name:"Student Loan (Wes)", balance:0, rate:0.05, payment:1723.00 }
+  ],
+  debtStrategy: 'avalanche',
+  debtExtra: 0
 };
 
 const HORIZON = 56;
@@ -802,7 +902,308 @@ function achievechip(label, row){
   return '<div class="achievechip"><div class="k">'+label+'</div><div class="v">'+(row?row.year:'n/a')+'</div></div>';
 }
 
-/* ===================== RENDER: PROJECTION ===================== */
+/* ===================== DEBT PAYOFF ENGINE ===================== */
+function runDebtPayoff(){
+  const strategy = state.debtStrategy;
+  const debts = state.debts.map(d=>({ ...d, remaining: d.balance, paidOffMonth:null, totalInterest:0 }));
+  const today = new Date();
+  const history = [{ month:0, total: debts.reduce((s,d)=>s+d.remaining,0) }];
+  let month = 0;
+  const maxMonths = 600;
+  while(month < maxMonths && debts.some(d=>d.remaining>0.01)){
+    month++;
+    debts.forEach(d=>{
+      if(d.remaining<=0.01) return;
+      const interest = d.remaining*(d.rate/12);
+      d.totalInterest += interest;
+      const pay = Math.min(d.payment, d.remaining+interest);
+      d.remaining = Math.max(d.remaining + interest - pay, 0);
+      if(d.remaining<=0.01) d.paidOffMonth = month;
+    });
+    let pool = state.debtExtra + debts.filter(d=>d.remaining<=0.01 && d.paidOffMonth!==null && d.paidOffMonth<month).reduce((s,d)=>s+d.payment,0);
+    const targets = debts.filter(d=>d.remaining>0.01).sort((a,b)=> strategy==='avalanche' ? b.rate-a.rate : a.remaining-b.remaining);
+    for(const d of targets){
+      if(pool<=0) break;
+      const applied = Math.min(pool, d.remaining);
+      d.remaining -= applied;
+      pool -= applied;
+      if(d.remaining<=0.01){ d.remaining=0; d.paidOffMonth=month; }
+    }
+    history.push({ month, total: debts.reduce((s,d)=>s+d.remaining,0) });
+  }
+  const totalToday = state.debts.reduce((s,d)=>s+d.balance,0);
+  const totalInterest = debts.reduce((s,d)=>s+d.totalInterest,0);
+  const weightedRate = totalToday>0 ? debts.reduce((s,d)=>s+d.balance*d.rate,0)/totalToday : 0;
+  const debtFreeDate = new Date(today.getFullYear(), today.getMonth()+month, 1);
+  const order = state.debts.map(d=>d.id).map(id=>{
+    const dd = debts.find(x=>x.id===id);
+    return dd;
+  }).sort((a,b)=> strategy==='avalanche' ? b.rate-a.rate : a.balance-b.balance);
+  return { debts, history, month, totalToday, totalInterest, weightedRate, debtFreeDate, payoffOrder: order };
+}
+
+/* ===================== MONTE CARLO ENGINE ===================== */
+function randNormal(mean, sd){
+  let u=0, v=0;
+  while(u===0) u=Math.random();
+  while(v===0) v=Math.random();
+  return mean + sd*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function runMonteCarlo(nSims){
+  const A = state.assumptions;
+  const bradAge0 = ageFromDob(state.brad.dob, new Date());
+  const wesAge0 = ageFromDob(state.wes.dob, new Date());
+  const year0 = new Date().getFullYear();
+
+  const rowsContinue = project('continue');
+  const wesRetireIdx = Math.max(state.wes.retireAge - wesAge0, 0);
+  const tradSpend = fireSpendingToday('traditional');
+  const otherAtRetire = otherIncomeAt(rowsContinue[Math.min(wesRetireIdx,HORIZON-1)].bradAge, rowsContinue[Math.min(wesRetireIdx,HORIZON-1)].wesAge, wesRetireIdx);
+  const hcAtRetire = healthcareCostAt(rowsContinue[Math.min(wesRetireIdx,HORIZON-1)].bradAge, rowsContinue[Math.min(wesRetireIdx,HORIZON-1)].wesAge, wesRetireIdx);
+  const futureTradNumber = Math.max(tradSpend*Math.pow(1+A.inflation, wesRetireIdx)-otherAtRetire+hcAtRetire,0)/taxAdjustedSWR();
+
+  const types = Object.keys(FIRE_META);
+  const successCount = {}; const achievedYears = {};
+  types.forEach(t=>{ successCount[t]=0; achievedYears[t]=[]; });
+
+  const trajectories = [];
+  for(let s=0; s<nSims; s++){
+    let bradAssets = state.brad.assets, wesAssets = state.wes.assets;
+    const traj = [];
+    const foundThisSim = {}; types.forEach(t=>foundThisSim[t]=false);
+    for(let i=0;i<HORIZON;i++){
+      const bradAge = bradAge0+i, wesAge = wesAge0+i;
+      if(i>0){
+        const r = randNormal(A.investmentReturn, A.returnStdev);
+        let bradContrib=0, wesContrib=0;
+        if(bradAge < state.brad.retireAge) bradContrib = (state.brad.contribMonthly)*12;
+        if(wesAge < state.wes.retireAge) wesContrib = (state.wes.contribMonthly)*12;
+        bradAssets = Math.max(bradAssets*(1+r)+bradContrib, 0);
+        wesAssets = Math.max(wesAssets*(1+r)+wesContrib, 0);
+      }
+      const combined = bradAssets+wesAssets;
+      traj.push(combined);
+      const row = { i, bradAge, wesAge };
+      types.forEach(t=>{
+        if(foundThisSim[t]) return;
+        const req = requiredNestEgg(t, row, futureTradNumber, wesRetireIdx);
+        if(combined >= req){ foundThisSim[t]=true; successCount[t]++; achievedYears[t].push(year0+i); }
+      });
+    }
+    trajectories.push(traj);
+  }
+
+  const bands = [];
+  for(let i=0;i<HORIZON;i++){
+    const vals = trajectories.map(t=>t[i]).sort((a,b)=>a-b);
+    const pct = p => vals[Math.min(vals.length-1, Math.max(0, Math.floor(p*(vals.length-1))))];
+    bands.push({ year:year0+i, p10:pct(0.10), p50:pct(0.50), p90:pct(0.90) });
+  }
+
+  const summary = types.map(t=>{
+    const yrs = achievedYears[t].slice().sort((a,b)=>a-b);
+    const median = yrs.length ? yrs[Math.floor(yrs.length/2)] : null;
+    return { type:t, title:FIRE_META[t].title, prob: successCount[t]/nSims, medianYear: median };
+  });
+
+  return { bands, summary };
+}
+
+function renderMonteCarloResults(){
+  const body = document.getElementById('mc-body');
+  body.innerHTML = '<div style="font-size:12.5px; color:var(--ink-faint); padding:30px 0; text-align:center;">Running 300 simulations...</div>';
+  setTimeout(()=>{
+    const R = runMonteCarlo(300);
+    body.innerHTML = `
+      <div class="chartwrap" style="height:260px; margin-bottom:14px;"><canvas id="chart-mc"></canvas></div>
+      <div class="tablewrap" style="max-height:none;">
+        <table style="table-layout:auto;">
+          <thead><tr><th style="text-align:left;">FIRE type</th><th>Chance of success</th><th>Typical year if achieved</th></tr></thead>
+          <tbody>${R.summary.map(s=>`<tr>
+            <td style="text-align:left; font-weight:600;">${s.title}</td>
+            <td class="num" style="color:${s.prob>=0.75?'var(--green)':s.prob>=0.4?'var(--gold)':'var(--rust)'}; font-weight:700;">${(s.prob*100).toFixed(0)}%</td>
+            <td class="num">${s.medianYear || 'n/a'}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+    if(charts['mc']) charts['mc'].destroy();
+    charts['mc'] = new Chart(document.getElementById('chart-mc'), {
+      type:'line',
+      data:{ labels:R.bands.map(b=>b.year), datasets:[
+        { label:'10th percentile', data:R.bands.map(b=>b.p10), borderColor:'transparent', backgroundColor:'transparent', pointRadius:0, fill:false },
+        { label:'90th percentile', data:R.bands.map(b=>b.p90), borderColor:'transparent', backgroundColor:'rgba(63,107,82,0.14)', pointRadius:0, fill:'-1' },
+        { label:'Median outcome', data:R.bands.map(b=>b.p50), borderColor:'#1E3128', borderWidth:2, pointRadius:0, tension:0.15, fill:false }
+      ]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{
+          legend:{ position:'top', align:'end', labels:{ boxWidth:10, boxHeight:10, font:{size:11}, filter:(item)=>item.text!=='10th percentile' } },
+          tooltip:{ callbacks:{ label:(ctx)=> ctx.dataset.label+': '+fmt$full(ctx.parsed.y) } }
+        },
+        scales:{
+          x:{ grid:{ display:false }, ticks:{ maxTicksLimit:10 } },
+          y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
+        }
+      }
+    });
+  }, 30);
+}
+
+/* ===================== SANKEY (custom, no library) ===================== */
+function buildSankeySVG(sources, hubLabel, dests, W, H){
+  const nodeW = 16, pad = 14;
+  const total = sources.reduce((s,n)=>s+n.value, 0);
+  if(total<=0) return '<div style="font-size:12px;color:var(--ink-faint);padding:20px;">Add income figures on the Inputs tab to see this chart.</div>';
+  const leftX = 6, hubX = W/2-nodeW/2, rightX = W-6-nodeW;
+  const scale = (H - pad*(Math.max(sources.length,dests.length)-1)) / total;
+
+  function layout(nodes, x){
+    let y = 0;
+    return nodes.map(n=>{
+      const h = Math.max(n.value*scale, 2);
+      const node = { ...n, x, y, h };
+      y += h + pad;
+      return node;
+    });
+  }
+  const src = layout(sources, leftX);
+  const dst = layout(dests, rightX);
+  const hubH = H - pad*0;
+  const hub = { x: hubX, y:0, h: total*scale, value: total };
+
+  let svg = `<svg viewBox="0 0 ${W} ${H+30}" width="100%" style="max-width:100%;">`;
+  svg += `<text x="${leftX}" y="-6" class="sankey-lbl"></text>`;
+
+  function flowPath(x1,y1,h1,x2,y2,h2){
+    const midx = (x1+x2)/2;
+    return `M${x1},${y1} C${midx},${y1} ${midx},${y2} ${x2},${y2}
+            L${x2},${y2+h2} C${midx},${y2+h2} ${midx},${y1+h1} ${x1},${y1+h1} Z`;
+  }
+
+  let hubOffsetIn = 0;
+  src.forEach(n=>{
+    const flowH = n.h;
+    const p = flowPath(n.x+nodeW, n.y, flowH, hub.x, hubOffsetIn, flowH);
+    svg += `<path d="${p}" fill="${n.color||'#3F6B52'}" opacity="0.28"/>`;
+    hubOffsetIn += flowH + (src.length>1 ? pad*0 : 0);
+  });
+
+  let hubOffsetOut = 0;
+  dst.forEach(n=>{
+    const flowH = n.h;
+    const p = flowPath(hub.x+nodeW, hubOffsetOut, flowH, n.x, n.y, flowH);
+    svg += `<path d="${p}" fill="${n.color||'#B8935A'}" opacity="0.35"/>`;
+    hubOffsetOut += flowH;
+  });
+
+  src.forEach(n=>{
+    svg += `<rect x="${n.x}" y="${n.y}" width="${nodeW}" height="${n.h}" fill="${n.color||'#3F6B52'}" rx="2"/>`;
+    svg += `<text x="${n.x+nodeW+8}" y="${n.y+n.h/2+4}" font-size="12" fill="#1E3128" font-family="Lato,sans-serif">${n.label} &#183; ${fmt$(n.value)}</text>`;
+  });
+  svg += `<rect x="${hub.x}" y="${hub.y}" width="${nodeW}" height="${hub.h}" fill="#1E3128" rx="2"/>`;
+  svg += `<text x="${hub.x+nodeW/2}" y="${hub.h+16}" font-size="12" fill="#1E3128" font-family="Lato,sans-serif" text-anchor="middle" font-weight="700">Total income &#183; ${fmt$(hub.value)}/mo</text>`;
+  dst.forEach(n=>{
+    svg += `<rect x="${n.x}" y="${n.y}" width="${nodeW}" height="${n.h}" fill="${n.color||'#B8935A'}" rx="2"/>`;
+    svg += `<text x="${n.x-8}" y="${n.y+n.h/2+4}" font-size="12" fill="#1E3128" font-family="Lato,sans-serif" text-anchor="end">${n.label} &#183; ${fmt$(n.value)}</text>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+/* ===================== RENDER: DEBT ===================== */
+function renderDebt(){
+  const R = runDebtPayoff();
+  const el = document.getElementById('debt-stats');
+  el.innerHTML = [
+    ['Total debt today', fmt$(R.totalToday)],
+    ['Weighted avg rate', (R.weightedRate*100).toFixed(1)+'%'],
+    ['Projected debt-free', R.month>0 ? R.debtFreeDate.toLocaleDateString('en-US',{month:'short',year:'numeric'}) : 'Already debt-free'],
+    ['Total interest paid', fmt$(R.totalInterest)]
+  ].map(([label,value])=>`<div class="stat"><div class="label">${label}</div><div class="value num">${value}</div></div>`).join('');
+
+  if(charts['debt']) charts['debt'].destroy();
+  const labels = R.history.filter((h,i)=> i%Math.max(1,Math.floor(R.history.length/60))===0 || i===R.history.length-1).map(h=>h.month);
+  const data = R.history.filter((h,i)=> i%Math.max(1,Math.floor(R.history.length/60))===0 || i===R.history.length-1).map(h=>h.total);
+  charts['debt'] = new Chart(document.getElementById('chart-debt'), {
+    type:'line',
+    data:{ labels, datasets:[{ label:'Total balance', data, borderColor:'#A2532E', backgroundColor:'rgba(162,83,46,0.08)', fill:true, borderWidth:2, pointRadius:0, tension:0.15 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=>fmt$full(ctx.parsed.y), title:(items)=>'Month '+items[0].label } } },
+      scales:{
+        x:{ title:{ display:true, text:'Months from now' }, grid:{ display:false } },
+        y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
+      }
+    }
+  });
+
+  const orderIds = R.payoffOrder.map(d=>d.id);
+  document.getElementById('debt-tbody').innerHTML = state.debts.map(sd=>{
+    const d = R.debts.find(x=>x.id===sd.id);
+    const rank = orderIds.indexOf(sd.id)+1;
+    const payoffLabel = d.paidOffMonth ? new Date(new Date().getFullYear(), new Date().getMonth()+d.paidOffMonth, 1).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : (sd.balance<=0 ? 'Already paid off' : 'Beyond horizon');
+    return `<tr>
+      <td style="text-align:left; font-weight:600;">${sd.name}</td>
+      <td class="num">$<input type="number" data-path="debts.${state.debts.indexOf(sd)}.balance" style="width:90px;"></td>
+      <td class="num"><input type="number" step="0.1" data-path="debts.${state.debts.indexOf(sd)}.rate" data-pct="1" style="width:56px;">%</td>
+      <td class="num">$<input type="number" data-path="debts.${state.debts.indexOf(sd)}.payment" style="width:80px;"></td>
+      <td style="text-align:center;">#${rank}</td>
+      <td style="text-align:center;">${payoffLabel}</td>
+      <td class="num">${fmt$(d.totalInterest)}</td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#debt-tbody [data-path]').forEach(bindOne);
+}
+
+/* ===================== RENDER: BUDGET ===================== */
+function renderBudget(){
+  const bradM = state.brad.income/12, wesM = state.wes.income/12, rentM = state.realEstate.rental.rentIncome;
+  const incomeTotal = bradM+wesM+rentM;
+  const taxes = incomeTotal*state.tax.incomeTaxRate;
+  const essential = state.fire.lean/12;
+  const discretionary = Math.max(state.fire.traditional-state.fire.lean,0)/12;
+  const debtPay = state.debts.reduce((s,d)=>s+d.payment,0);
+  const investing = state.brad.contribMonthly+state.wes.contribMonthly;
+  const rentalCosts = state.realEstate.rental.payment+state.realEstate.rental.expenses;
+  const outflowsKnown = taxes+essential+discretionary+debtPay+investing+rentalCosts;
+  const surplus = incomeTotal-outflowsKnown;
+
+  const el = document.getElementById('budget-stats');
+  el.innerHTML = [
+    ['Monthly income', fmt$(incomeTotal)],
+    ['Monthly outflows', fmt$(outflowsKnown)],
+    [surplus>=0 ? 'Monthly surplus' : 'Monthly shortfall', fmt$(Math.abs(surplus))],
+    ['Household savings rate', incomeTotal>0 ? fmtPct(investing/incomeTotal) : 'n/a']
+  ].map(([label,value])=>`<div class="stat"><div class="label">${label}</div><div class="value num">${value}</div></div>`).join('');
+
+  const sources = [
+    { label:"Brad's salary", value:bradM, color:'#3F6B52' },
+    { label:"Wes's salary", value:wesM, color:'#5A6B95' },
+    { label:'Rental income', value:rentM, color:'#B8935A' }
+  ].filter(s=>s.value>0);
+
+  const dests = [
+    { label:'Taxes (est.)', value:taxes, color:'#A2532E' },
+    { label:'Essential living', value:essential, color:'#5C7A63' },
+    { label:'Discretionary', value:discretionary, color:'#8FA894' },
+    { label:'Debt payments', value:debtPay, color:'#A2532E' },
+    { label:'Investing', value:investing, color:'#3F6B52' },
+    { label:'Rental costs', value:rentalCosts, color:'#5A6B95' },
+    surplus>=0 ? { label:'Surplus', value:surplus, color:'#B8935A' } : { label:'Shortfall', value:Math.abs(surplus), color:'#A2532E' }
+  ].filter(d=>d.value>0.5);
+
+  document.getElementById('sankey-wrap').innerHTML = buildSankeySVG(sources, 'Total income', dests, 760, Math.max(280, dests.length*46));
+
+  const annualize = v => v*12;
+  document.getElementById('budget-tbody').innerHTML = dests.map(d=>{
+    return `<tr><td style="text-align:left;"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${d.color};margin-right:7px;"></span>${d.label}</td>
+      <td class="num">${fmt$full(d.value)}</td><td class="num">${fmt$full(annualize(d.value))}</td>
+      <td class="num">${incomeTotal>0 ? (d.value/incomeTotal*100).toFixed(1)+'%' : 'n/a'}</td></tr>`;
+  }).join('');
+}
+
 function renderProjection(){
   const rows = project(projScenario).slice(0, projHorizon);
   const tbody = document.getElementById('proj-tbody');
@@ -864,32 +1265,32 @@ function loadState(){
   }catch(e){}
 }
 
-function bindAll(){
-  document.querySelectorAll('[data-path]').forEach(el=>{
-    const path = el.dataset.path;
-    const isPct = el.dataset.pct==='1';
-    const isDate = el.type==='date';
-    const isCheck = el.type==='checkbox';
-    let val = getPath(state, path);
-    if(isCheck) el.checked = !!val;
-    else el.value = isDate ? val : (isPct ? Number((val*100).toFixed(2)) : val);
-    el.addEventListener(isCheck ? 'change' : 'input', ()=>{
-      let v;
-      if(isCheck){
-        v = el.checked;
-      } else if(isDate){
-        v = el.value;
-      } else {
-        v = parseFloat(el.value);
-        if(isNaN(v)) v = 0;
-        if(isPct) v = v/100;
-      }
-      setPath(state, path, v);
-      saveState();
-      renderInputsLive();
-      renderActive();
-    });
+function bindOne(el){
+  const path = el.dataset.path;
+  const isPct = el.dataset.pct==='1';
+  const isDate = el.type==='date';
+  const isCheck = el.type==='checkbox';
+  let val = getPath(state, path);
+  if(isCheck) el.checked = !!val;
+  else el.value = isDate ? val : (isPct ? Number((val*100).toFixed(2)) : val);
+  el.addEventListener(isCheck ? 'change' : 'input', ()=>{
+    let v;
+    if(isCheck){
+      v = el.checked;
+    } else if(isDate){
+      v = el.value;
+    } else {
+      v = parseFloat(el.value);
+      if(isNaN(v)) v = 0;
+      if(isPct) v = v/100;
+    }
+    setPath(state, path, v);
+    saveState();
+    renderActive();
   });
+}
+function bindAll(){
+  document.querySelectorAll('[data-path]').forEach(bindOne);
 }
 
 /* ===================== NAV / PILLS ===================== */
@@ -898,6 +1299,8 @@ function renderActive(){
   if(active==='section-dashboard') renderDashboard();
   else if(active==='section-projection') renderProjection();
   else if(active==='section-inputs') renderInputsLive();
+  else if(active==='section-debt') renderDebt();
+  else if(active==='section-budget') renderBudget();
 }
 document.querySelectorAll('.navitem').forEach(item=>{
   item.addEventListener('click', ()=>{
@@ -930,6 +1333,15 @@ document.getElementById('proj-horizon-pills').addEventListener('click', (e)=>{
   projHorizon = Number(pill.dataset.h);
   renderProjection();
 });
+document.getElementById('debt-strategy-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill'); if(!pill) return;
+  document.querySelectorAll('#debt-strategy-pills .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  state.debtStrategy = pill.dataset.strat;
+  saveState();
+  renderDebt();
+});
+document.getElementById('mc-run-btn').addEventListener('click', renderMonteCarloResults);
 
 /* ===================== INIT ===================== */
 loadState();
