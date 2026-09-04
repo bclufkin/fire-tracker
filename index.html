@@ -221,6 +221,11 @@
   .personhead.wes{ color:var(--indigo); background:var(--indigo-wash); }
   .assumptext{ font-size:12px; color:var(--ink-soft); background:var(--gold-wash); border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:11px 15px; margin-top:14px; line-height:1.65; }
   .assumptext b{ color:var(--ink); }
+  #section-methodology .sub{ font-size:13px; line-height:1.55; }
+  #section-methodology code{
+    background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:1px 6px;
+    font-size:12px; color:var(--teal-dark); font-family:Menlo,Consolas,monospace;
+  }
 
   /* Chart wrappers */
   .chartwrap{ position:relative; width:100%; }
@@ -277,6 +282,7 @@
     <div class="navitem" data-section="debt"><span class="dot"></span>Debt</div>
     <div class="navitem" data-section="budget"><span class="dot"></span>Budget</div>
     <div class="navitem" data-section="projection"><span class="dot"></span>Projection</div>
+    <div class="navitem" data-section="methodology"><span class="dot"></span>Methodology</div>
   </div>
 </div>
 <div id="disclaimer">All figures are projections based on the assumptions on the Inputs page. Not financial advice. Edit anything there and every chart updates.</div>
@@ -582,6 +588,84 @@
           <tbody id="proj-tbody"></tbody>
         </table>
       </div>
+    </div>
+  </section>
+
+  <!-- ============ METHODOLOGY ============ -->
+  <section class="section" id="section-methodology">
+    <div class="pagehead">
+      <h1>Methodology</h1>
+      <p>Exactly how every number on this site is calculated, and where the simplifications are.</p>
+    </div>
+
+    <div class="card">
+      <h3>Net worth projection engine</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Each year, each person's investable assets compound at your assumed investment return, then that year's contribution is added. Contributions stop the year that person reaches their target retirement age. Real estate uses standard loan amortization (monthly compounding on the actual rate and payment you enter) for the mortgage balance, and the home/rental value grows at your assumed appreciation rate. Home equity on the primary residence is split 50/50 between you; the rental condo's equity goes entirely to Wes, matching sole ownership.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>The three contribution scenarios</h3>
+      <div class="sub" style="margin-bottom:0;">
+        <b>Stop investing:</b> contributions are set to zero starting today; assets grow from market returns alone.<br>
+        <b>Keep current pace:</b> each of you keeps contributing your current monthly amount, flat, every year, until you retire.<br>
+        <b>Increase over time:</b> your monthly contribution grows every year by the rate you set (default 3%, loosely tracking how the IRS 401(k) limit tends to rise).<br>
+        All three use the same investment return assumption. They differ only in the contribution schedule.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>FIRE numbers, inflation, and "today's dollars"</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Every spending target you enter (Lean, Traditional, Chubby, Fat, Barista's offset) is in today's purchasing power. For a given future year, that target is inflated forward: <code>future spending = today's spending &times; (1 + inflation)^years</code>. Any pension or Social Security income is inflated the same way and subtracted first. What's left is divided by the tax-adjusted safe withdrawal rate (see Tax treatment below) to get that year's required nest egg. Your projected nominal assets are compared against that inflated, tax-adjusted number, not against the plain today's-dollars figure.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Coast FIRE</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Calculated differently from the other four. First, the Traditional FIRE number is projected forward to the year Wes turns 65 (inflated spending, minus other income, divided by the tax-adjusted SWR). That future number is then discounted back to today at your investment return rate: <code>coast number = future Traditional number &divide; (1 + return)^years to Wes's retirement</code>. That's the lump sum that, left alone with zero further contributions, would grow to fully fund Traditional FIRE by age 65 on market returns alone. Progress and "achieved" dates for Coast compare your assets against this shrinking-in-time-remaining bar, recalculated for every year in the projection.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Tax treatment (simplified)</h3>
+      <div class="sub" style="margin-bottom:0;">
+        This is a gross-up, not real bucket-by-bucket account tracking. You tell it what share of your investable assets is pre-tax (401(k), traditional IRA) versus Roth or taxable, and an effective tax rate you'd expect to pay on withdrawals from the pre-tax share. Every required nest egg is then inflated to cover that expected tax drag: <code>tax-adjusted SWR = SWR &times; (1 &minus; pre-tax share &times; effective tax rate)</code>, and that adjusted rate is used everywhere in place of the raw safe withdrawal rate. It does not model tax brackets, Roth conversion ladders, or account-specific withdrawal ordering.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Health care bridge</h3>
+      <div class="sub" style="margin-bottom:0;">
+        If either of you retires before 65, your entered monthly premium (inflated each year) is added on top of that year's spending target, only for the years between your retirement age and 65. At 65, it's assumed Medicare takes over and the premium drops out.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Monte Carlo simulation</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Runs 300 independent simulated futures. In each one, every year gets its own random investment return drawn from a normal distribution centered on your assumed return, with the spread set by the volatility input (default 15 percentage points of standard deviation), generated with a standard Box-Muller transform. Both of your combined investable assets share the same randomly drawn return in a given year in a given simulation, since a real market year doesn't move your accounts independently. Contributions follow the "keep current pace" schedule in every simulation. The other two scenarios aren't stress-tested. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the 55-year horizon. "Typical year" is the median year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth in each year; the dark line is the median (50th percentile) path.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Debt payoff (avalanche &amp; snowball)</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Simulated month by month, not year by year. Each month, every debt accrues interest on its remaining balance at its stated annual rate divided by 12, then its own minimum payment is applied. Any extra monthly payment you've set, plus the full payment amount of any debt that's already been paid off, is pooled together and thrown at whichever debt is "first" under your chosen strategy: <b>avalanche</b> orders by highest interest rate first (minimizes total interest paid); <b>snowball</b> orders by smallest remaining balance first (clears individual debts faster). That's the classic "debt snowball" rolling effect: freed-up minimum payments permanently join the extra-payment pool once a debt is gone.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Budget and cash flow</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Built from figures already elsewhere in the tool rather than a separate line-item budget. Income is your two salaries (annual &divide; 12) plus monthly rental income. Taxes are estimated as a flat percentage of gross income (editable, default 25%), not a real bracket calculation. "Essential living" is your Lean FIRE annual target &divide; 12; "discretionary" is the gap between Traditional and Lean, divided by 12. Debt payments sum the monthly payments on the Debt tab. Investing is your combined current monthly contributions. Rental costs are the rental mortgage payment plus its other monthly expenses. Whatever's left (or missing) after all of that is shown as surplus or shortfall.
+      </div>
+    </div>
+
+    <div class="assumptext" style="margin-top:16px;">
+      <b>What this tool is not:</b> it isn't tax software, doesn't model account-specific withdrawal ordering or Roth conversion strategy, doesn't do real bracket-based tax calculations, and its Monte Carlo engine uses one simplified random-return draw per year rather than modeling actual asset-class behavior or sequence-of-returns nuance beyond that. Treat every number here as a planning estimate to sanity-check decisions against, not as financial or tax advice.
     </div>
   </section>
 
