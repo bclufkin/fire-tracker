@@ -318,6 +318,9 @@
     <div class="navitem" data-section="inputs"><span class="dot"></span>Inputs</div>
     <div class="navitem" data-section="debt"><span class="dot"></span>Debt</div>
     <div class="navitem" data-section="budget"><span class="dot"></span>Budget</div>
+    <div class="navitem" data-section="goals"><span class="dot"></span>Goals</div>
+    <div class="navitem" data-section="history"><span class="dot"></span>History</div>
+    <div class="navitem" data-section="estate"><span class="dot"></span>Estate</div>
     <div class="navitem" data-section="projection"><span class="dot"></span>Projection</div>
     <div class="navitem" data-section="methodology"><span class="dot"></span>Methodology</div>
   </div>
@@ -672,6 +675,81 @@
     </div>
   </section>
 
+  <!-- ============ GOALS ============ -->
+  <section class="section" id="section-goals">
+    <div class="pagehead">
+      <h1>Savings goals</h1>
+      <p>Separate from FIRE and from your emergency fund. The things you're saving toward on their own timeline.</p>
+    </div>
+    <div class="card">
+      <div class="rowbar">
+        <div>
+          <h3>Your goals</h3>
+          <div class="sub" style="margin-bottom:0;">Each goal shows the monthly savings needed to hit it by the target date, given what's already set aside.</div>
+        </div>
+        <button id="goal-add-btn" class="btn">+ Add goal</button>
+      </div>
+      <div class="firegrid" id="goals-grid" style="margin-top:14px;"></div>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="section" id="section-history">
+    <div class="pagehead">
+      <h1>Net worth history</h1>
+      <p>Log where you actually stand, periodically, and see it against what was projected.</p>
+    </div>
+    <div class="stats" id="history-stats"></div>
+    <div class="card">
+      <div class="rowbar">
+        <div>
+          <h3>Actual vs. projected</h3>
+          <div class="sub" style="margin-bottom:0;">Your logged snapshots (dots) against the "keep current pace" projection (line) for the same dates.</div>
+        </div>
+      </div>
+      <div class="chartwrap" style="height:280px;"><canvas id="chart-history"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="rowbar">
+        <div>
+          <h3>Snapshots</h3>
+          <div class="sub" style="margin-bottom:0;">Add a new one whenever you check your real balances. Real estate equity is optional; leave at 0 to track investable assets only.</div>
+        </div>
+        <button id="snapshot-add-btn" class="btn">+ Add snapshot</button>
+      </div>
+      <div class="tablewrap" style="max-height:none; margin-top:14px;">
+        <table style="table-layout:auto;">
+          <thead><tr><th style="text-align:left;">Date</th><th>Brad investable</th><th>Wes investable</th><th>Real estate equity</th><th>Total net worth</th><th></th></tr></thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ESTATE ============ -->
+  <section class="section" id="section-estate">
+    <div class="pagehead">
+      <h1>Estate basics</h1>
+      <p>A checklist, not a calculation. Just tracking whether the paperwork exists.</p>
+    </div>
+    <div class="card">
+      <h3>Documents &amp; designations</h3>
+      <div class="sub">Check what's actually in place.</div>
+      <table class="param-table"><tbody>
+        <tr><td>Will in place</td><td class="pval"><input type="checkbox" data-path="estate.hasWill"></td></tr>
+        <tr><td>Will last updated</td><td class="pval"><input type="date" data-path="estate.willDate"></td></tr>
+        <tr><td>Power of attorney</td><td class="pval"><input type="checkbox" data-path="estate.hasPOA"></td></tr>
+        <tr><td>Healthcare proxy / advance directive</td><td class="pval"><input type="checkbox" data-path="estate.hasHealthcareProxy"></td></tr>
+        <tr><td>Beneficiaries reviewed recently<span class="hint">401(k), IRAs, life insurance</span></td><td class="pval"><input type="checkbox" data-path="estate.beneficiariesReviewed"></td></tr>
+        <tr><td>Beneficiaries last reviewed</td><td class="pval"><input type="date" data-path="estate.beneficiariesDate"></td></tr>
+      </tbody></table>
+      <div class="fieldrow" style="margin-top:10px; align-items:flex-start;">
+        <label style="flex:0.6;">Notes</label>
+        <div class="inputwrap" style="flex:1;"><textarea data-path="estate.notes" rows="3" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; font-family:var(--font-body); resize:vertical;"></textarea></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ PROJECTION ============ -->
   <section class="section" id="section-projection">
     <div class="pagehead">
@@ -847,7 +925,12 @@ const state = {
     { id:'studentWes', name:"Student Loan (Wes)", balance:0, rate:0.05, minPayment:1723.00, payment:1723.00 }
   ],
   debtStrategy: 'avalanche',
-  debtExtra: 0
+  debtExtra: 0,
+  netWorthHistory: [],
+  goals: [
+    { id:'goal1', name:'Roof replacement', targetAmount:20000, targetDate:'2028-06-01', currentAmount:0 }
+  ],
+  estate: { hasWill:false, willDate:'', hasPOA:false, hasHealthcareProxy:false, beneficiariesReviewed:false, beneficiariesDate:'', notes:'' }
 };
 
 function ageMonthsFromDob(dobStr, today){
@@ -1575,6 +1658,97 @@ function renderAccountsTable(who){
   });
 }
 
+/* ===================== RENDER: GOALS ===================== */
+function renderGoals(){
+  const grid = document.getElementById('goals-grid');
+  const today = new Date();
+  grid.innerHTML = state.goals.map((g,idx)=>{
+    const target = new Date(g.targetDate+'T00:00:00');
+    const monthsLeft = Math.max((target.getFullYear()-today.getFullYear())*12+(target.getMonth()-today.getMonth()), 0);
+    const remaining = Math.max(g.targetAmount-g.currentAmount,0);
+    const monthlyNeeded = monthsLeft>0 ? remaining/monthsLeft : remaining;
+    const pct = g.targetAmount>0 ? Math.min(g.currentAmount/g.targetAmount,1) : 0;
+    return `<div class="firecard">
+      <div class="top">
+        <h3><input type="text" data-path="goals.${idx}.name" style="border:none; background:transparent; font-family:var(--font-head); font-weight:700; font-size:16.5px; padding:0; width:160px;"></h3>
+        <span class="goal-remove" data-id="${g.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span>
+      </div>
+      <div class="desc">Target $<input type="number" data-path="goals.${idx}.targetAmount" style="width:76px;"> by <input type="date" data-path="goals.${idx}.targetDate" style="width:128px;"></div>
+      <div class="bignum">${fmt$(monthlyNeeded)}/mo</div>
+      <div class="progresswrap"><div class="progressbar" style="width:${(pct*100).toFixed(0)}%;"></div></div>
+      <div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:8px;">${(pct*100).toFixed(0)}% saved &middot; ${monthsLeft} months left</div>
+      <div class="fieldrow"><label>Currently set aside</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="goals.${idx}.currentAmount" style="width:90px;"></div></div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#goals-grid [data-path]').forEach(bindOne);
+  document.querySelectorAll('.goal-remove').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.goals = state.goals.filter(g=>g.id!==el.dataset.id);
+      saveState();
+      renderGoals();
+    });
+  });
+}
+
+/* ===================== RENDER: HISTORY ===================== */
+function renderHistory(){
+  const snaps = state.netWorthHistory.map((s,idx)=>({...s, idx})).sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const totalOf = s => s.bradAssets+s.wesAssets+s.realEstateEquity;
+  const latest = snaps[snaps.length-1];
+
+  document.getElementById('history-stats').innerHTML = [
+    ['Snapshots logged', snaps.length],
+    ['Latest logged net worth', latest ? fmt$(totalOf(latest)) : 'n/a'],
+    ['As of', latest ? new Date(latest.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) : 'n/a']
+  ].map(([label,value])=>`<div class="stat"><div class="label">${label}</div><div class="value num">${value}</div></div>`).join('');
+
+  const rows = project('continue');
+  const projPoints = rows.filter(r=>r.i%3===0).map(r=>({ x: r.year+r.month/12, y: r.jointNW }));
+  const actualPoints = snaps.map(s=>{
+    const d = new Date(s.date+'T00:00:00');
+    return { x: d.getFullYear()+d.getMonth()/12, y: totalOf(s) };
+  });
+
+  if(charts['history']) charts['history'].destroy();
+  charts['history'] = new Chart(document.getElementById('chart-history'), {
+    type:'line',
+    data:{ datasets:[
+      { label:'Projected', data:projPoints, borderColor:'#8FA894', borderDash:[4,3], borderWidth:2, pointRadius:0, tension:0.15, fill:false, showLine:true },
+      { label:'Actual (logged)', data:actualPoints, borderColor:'#A2532E', backgroundColor:'#A2532E', pointRadius:5, pointHoverRadius:7, showLine:false }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'top', align:'end', labels:{ boxWidth:10, boxHeight:10, font:{size:11} } },
+        tooltip:{ callbacks:{ label:(ctx)=> ctx.dataset.label+': '+fmt$full(ctx.parsed.y), title:(items)=> Math.floor(items[0].parsed.x) } }
+      },
+      scales:{
+        x:{ type:'linear', grid:{ display:false }, ticks:{ callback:(v)=>Math.round(v) } },
+        y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
+      }
+    }
+  });
+
+  document.getElementById('history-tbody').innerHTML = snaps.map(s=>{
+    return `<tr>
+      <td style="text-align:left;"><input type="date" data-path="netWorthHistory.${s.idx}.date"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="netWorthHistory.${s.idx}.bradAssets" style="width:90px;"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="netWorthHistory.${s.idx}.wesAssets" style="width:90px;"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="netWorthHistory.${s.idx}.realEstateEquity" style="width:90px;"></td>
+      <td class="num">${fmt$full(totalOf(s))}</td>
+      <td style="text-align:center;"><span class="snapshot-remove" data-id="${s.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#history-tbody [data-path]').forEach(bindOne);
+  document.querySelectorAll('.snapshot-remove').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.netWorthHistory = state.netWorthHistory.filter(s=>s.id!==el.dataset.id);
+      saveState();
+      renderHistory();
+    });
+  });
+}
+
 function renderExpenseTable(){
   document.getElementById('expense-tbody').innerHTML = state.expenses.map(exp=>{
     const idx = state.expenses.indexOf(exp);
@@ -1717,7 +1891,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.3.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -1750,7 +1924,7 @@ function bindOne(el){
   const isPct = el.dataset.pct==='1';
   const isDate = el.type==='date';
   const isCheck = el.type==='checkbox';
-  const isText = el.type==='text' || el.tagName==='SELECT';
+  const isText = el.type==='text' || el.tagName==='SELECT' || el.tagName==='TEXTAREA';
   let val = getPath(state, path);
   if(isCheck) el.checked = !!val;
   else el.value = (isDate || isText) ? val : (isPct ? Number((val*100).toFixed(2)) : val);
@@ -1785,6 +1959,8 @@ function renderActive(){
   else if(active==='section-inputs') renderInputsLive();
   else if(active==='section-debt') renderDebt();
   else if(active==='section-budget') renderBudget();
+  else if(active==='section-goals') renderGoals();
+  else if(active==='section-history') renderHistory();
 }
 document.querySelectorAll('.navitem').forEach(item=>{
   item.addEventListener('click', ()=>{
@@ -1843,6 +2019,17 @@ document.getElementById('expense-add-btn').addEventListener('click', ()=>{
   state.expenses.push({ id:'exp'+Date.now(), name:'New expense', amount:0, category:'essential' });
   saveState();
   renderBudget();
+});
+document.getElementById('goal-add-btn').addEventListener('click', ()=>{
+  const d = new Date(); d.setFullYear(d.getFullYear()+2);
+  state.goals.push({ id:'goal'+Date.now(), name:'New goal', targetAmount:10000, targetDate:d.toISOString().slice(0,10), currentAmount:0 });
+  saveState();
+  renderGoals();
+});
+document.getElementById('snapshot-add-btn').addEventListener('click', ()=>{
+  state.netWorthHistory.push({ id:'snap'+Date.now(), date:new Date().toISOString().slice(0,10), bradAssets:0, wesAssets:0, realEstateEquity:0 });
+  saveState();
+  renderHistory();
 });
 
 /* ===================== INIT ===================== */
