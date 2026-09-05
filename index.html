@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Brad and Wes: Path to FIRE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -145,6 +148,8 @@
     box-shadow:0 1px 3px rgba(30,49,40,0.05);
   }
   .card + .card{ margin-top:16px; }
+  .formgrid > .card + .card{ margin-top:0; }
+  .formgrid > .card{ margin-top:0; }
   .card h3{ font-size:15px; margin-bottom:9px; padding-bottom:9px; border-bottom:1px solid var(--line-soft); }
   .card .sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:10px; line-height:1.4; }
 
@@ -179,13 +184,13 @@
   /* FIRE cards grid */
   .firegrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:16px; margin-top:16px; }
   .firecard{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px 14px; }
-  .firecard .top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; }
+  .firecard .top{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; row-gap:2px; margin-bottom:2px; }
   .firecard h3{ font-size:16.5px; }
-  .firecard .target{ font-size:12px; color:var(--ink-soft); }
+  .firecard .target{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
   .firecard .bignum{ font-family:var(--font-head); font-size:28px; margin:10px 0 4px; }
   .progresswrap{ height:6px; background:var(--line-soft); border-radius:99px; overflow:hidden; margin-bottom:10px; }
   .progressbar{ height:100%; background:var(--teal); border-radius:99px; }
-  .firecard .desc{ font-size:12px; color:var(--ink-soft); margin-bottom:10px; }
+  .firecard .desc{ font-size:12px; color:var(--ink-soft); margin-bottom:10px; min-height:44px; }
   .achieverow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .achievechip{
     flex:1; min-width:88px; background:var(--bg); border:1px solid var(--line-soft); border-radius:8px;
@@ -226,9 +231,13 @@
   .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:0 22px; }
   .personhead{
     display:inline-block; font-size:11.5px; font-weight:600; color:var(--teal-dark);
-    background:var(--teal-wash); border-radius:99px; padding:4px 11px; margin:16px 0 6px;
+    background:var(--teal-wash); border-radius:99px; padding:4px 11px; margin:0 0 8px;
   }
   .personhead.wes{ color:var(--indigo); background:var(--indigo-wash); }
+  .personblock{ border-left:3px solid var(--teal); padding:2px 0 4px 14px; margin:14px 0 0 -2px; }
+  .personblock.wes{ border-left-color:var(--indigo); }
+  .personblock .fieldrow{ margin:0 -12px 0 -14px; padding-left:14px; }
+  .acct-add-btn{ font-size:11.5px; padding:5px 12px; margin-top:6px; }
   .assumptext{ font-size:12px; color:var(--ink-soft); background:var(--gold-wash); border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:11px 15px; margin-top:14px; line-height:1.65; }
   .assumptext b{ color:var(--ink); }
   .acct-table{ width:100%; border-collapse:collapse; margin:8px 0 14px; font-size:12.5px; }
@@ -335,6 +344,7 @@
       <div class="stat">
         <div class="label">Combined annual income</div>
         <div class="value num" id="stat-income">n/a</div>
+        <div class="hint" style="margin-top:2px;">Drives this card, Budget, and "income-driven" growth only, not the other scenarios below</div>
       </div>
       <div class="stat">
         <div class="label">Household savings rate</div>
@@ -421,41 +431,28 @@
       <div class="card">
         <h3>You two</h3>
         <div class="sub">Ages calculate themselves from your birthdays. Balances highlighted in gold are unverified placeholders parking your full total in one bucket. Split them across your real accounts when you can.</div>
-        <div class="personhead">Brad</div>
-        <div class="fieldrow"><label>Birthday<span class="hint" id="brad-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="brad.dob"></div></div>
-        <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="brad.retireAge"></div></div>
-        <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.income"></div></div>
-        <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.employerMatch"></div></div>
-        <table class="acct-table">
-          <thead><tr><th style="text-align:left;">Brad's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
-          <tbody>
-            <tr><td>Traditional 401(k)</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.traditional.balance" id="brad-trad-balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.traditional.monthly"></td></tr>
-            <tr><td>Roth 401(k)</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.roth401k.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.roth401k.monthly"></td></tr>
-            <tr><td>Roth IRA</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.rothIRA.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.rothIRA.monthly"></td></tr>
-            <tr><td>HSA</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.hsa.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.hsa.monthly"></td></tr>
-            <tr><td>Brokerage</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.brokerage.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.brokerage.monthly"></td></tr>
-            <tr class="acct-total"><td>Total</td><td class="num" id="brad-assets-total">n/a</td><td class="num" id="brad-contrib-total">n/a</td></tr>
-          </tbody>
-        </table>
-        <div class="hint" id="brad-cap-room" style="margin-top:-6px; margin-bottom:10px;">n/a</div>
-        <div class="personhead wes">Wes</div>
-        <div class="fieldrow"><label>Birthday<span class="hint" id="wes-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="wes.dob"></div></div>
-        <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="wes.retireAge"></div></div>
-        <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.income"></div></div>
-        <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.employerMatch"></div></div>
-        <table class="acct-table">
-          <thead><tr><th style="text-align:left;">Wes's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
-          <tbody>
-            <tr><td>Traditional 401(k)</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.traditional.balance" id="wes-trad-balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.traditional.monthly"></td></tr>
-            <tr><td>Roth 401(k)</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.roth401k.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.roth401k.monthly"></td></tr>
-            <tr><td>Roth IRA</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.rothIRA.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.rothIRA.monthly"></td></tr>
-            <tr><td>HSA</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.hsa.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.hsa.monthly"></td></tr>
-            <tr><td>Brokerage</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.brokerage.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.brokerage.monthly"></td></tr>
-            <tr class="acct-total"><td>Total</td><td class="num" id="wes-assets-total">n/a</td><td class="num" id="wes-contrib-total">n/a</td></tr>
-          </tbody>
-        </table>
-        <div class="hint" id="wes-cap-room" style="margin-top:-6px; margin-bottom:10px;">n/a</div>
+        <div class="personblock brad">
+          <div class="personhead">Brad</div>
+          <div class="fieldrow"><label>Birthday<span class="hint" id="brad-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="brad.dob"></div></div>
+          <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="brad.retireAge"></div></div>
+          <div class="fieldrow"><label>Annual salary</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.income"></div></div>
+          <div class="fieldrow"><label>Secondary/side income<span class="hint">annual, e.g. trivia writing</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.secondaryIncome"></div></div>
+          <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.employerMatch"></div></div>
+          <div id="brad-accounts-wrap"></div>
+          <div class="hint" id="brad-cap-room" style="margin-top:2px; margin-bottom:10px;">n/a</div>
+        </div>
+        <div class="personblock wes">
+          <div class="personhead wes">Wes</div>
+          <div class="fieldrow"><label>Birthday<span class="hint" id="wes-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="wes.dob"></div></div>
+          <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="wes.retireAge"></div></div>
+          <div class="fieldrow"><label>Annual salary</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.income"></div></div>
+          <div class="fieldrow"><label>Secondary/side income<span class="hint">annual</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.secondaryIncome"></div></div>
+          <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.employerMatch"></div></div>
+          <div id="wes-accounts-wrap"></div>
+          <div class="hint" id="wes-cap-room" style="margin-top:2px; margin-bottom:10px;">n/a</div>
+        </div>
       </div>
+
 
       <div class="card">
         <h3>Real estate</h3>
@@ -511,7 +508,7 @@
           <tr><td>Barista part-time income<span class="hint">offsets Traditional's spending target</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="fire.baristaIncome"></td></tr>
         </tbody></table>
         <div class="assumptext" style="margin-top:12px;">
-          Want a different Lean or Traditional number than your actual current spending? Edit the expense list on the Budget tab (or add a line like "extra retirement travel") rather than typing a number here &mdash; that keeps every number in this tool pulling from one real source instead of two disconnected guesses.
+          Want a different Lean or Traditional number than your actual current spending? Edit the expense list on the Budget tab (or add a line like "extra retirement travel") rather than typing a number here. That keeps every number in this tool pulling from one real source instead of two disconnected guesses.
         </div>
       </div>
 
@@ -804,20 +801,15 @@
 <script>
 /* ===================== STATE ===================== */
 const state = {
-  brad: { dob:'1990-11-14', retireAge:50, income:180000, employerMatch:0, accounts:{
-    traditional:{ balance:450000, monthly:871 },
-    roth401k:{ balance:0, monthly:1451.66 },
-    rothIRA:{ balance:0, monthly:0 },
-    hsa:{ balance:0, monthly:366.66 },
-    brokerage:{ balance:0, monthly:200 }
-  }},
-  wes: { dob:'1987-01-08', retireAge:65, income:125000, employerMatch:0, accounts:{
-    traditional:{ balance:80000, monthly:730 },
-    roth401k:{ balance:0, monthly:0 },
-    rothIRA:{ balance:0, monthly:0 },
-    hsa:{ balance:0, monthly:0 },
-    brokerage:{ balance:0, monthly:0 }
-  }},
+  brad: { dob:'1990-11-14', retireAge:50, income:180000, secondaryIncome:0, employerMatch:0, accounts:[
+    { id:'b1', name:'Traditional 401(k)', type:'traditional', balance:450000, monthly:871 },
+    { id:'b2', name:'Roth 401(k)', type:'roth401k', balance:0, monthly:1451.66 },
+    { id:'b3', name:'HSA', type:'hsa', balance:0, monthly:366.66 },
+    { id:'b4', name:'Brokerage', type:'brokerage', balance:0, monthly:200 }
+  ]},
+  wes: { dob:'1987-01-08', retireAge:65, income:125000, secondaryIncome:0, employerMatch:0, accounts:[
+    { id:'w1', name:'Traditional 401(k)', type:'traditional', balance:80000, monthly:730 }
+  ]},
   realEstate: {
     primary: { purchasePrice:0, value:0, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
     rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
@@ -875,15 +867,14 @@ function setPath(obj, path, val){
   o[keys[keys.length-1]] = val;
 }
 function personAssets(who){
-  const a = state[who].accounts;
-  return a.traditional.balance + a.roth401k.balance + a.rothIRA.balance + a.hsa.balance + a.brokerage.balance;
+  return state[who].accounts.reduce((s,a)=>s+a.balance, 0);
 }
 function personContrib(who){
-  const a = state[who].accounts;
-  return a.traditional.monthly + a.roth401k.monthly + a.rothIRA.monthly + a.hsa.monthly + a.brokerage.monthly + state[who].employerMatch;
+  return state[who].accounts.reduce((s,a)=>s+a.monthly, 0) + state[who].employerMatch;
 }
 function computedTraditionalFraction(){
-  const tradTotal = state.brad.accounts.traditional.balance + state.wes.accounts.traditional.balance;
+  const tradTotal = state.brad.accounts.filter(a=>a.type==='traditional').reduce((s,a)=>s+a.balance,0)
+    + state.wes.accounts.filter(a=>a.type==='traditional').reduce((s,a)=>s+a.balance,0);
   const total = personAssets('brad') + personAssets('wes');
   return total>0 ? tradTotal/total : 0;
 }
@@ -899,10 +890,10 @@ function discretionaryMonthlyTotal(){
 function livingSpendingAnnualToday(){
   return (essentialMonthlyTotal()+discretionaryMonthlyTotal())*12;
 }
-function personIncome0(who){ return state[who].income; }
+function personIncome0(who){ return state[who].income + state[who].secondaryIncome; }
 function incomeDrivenExtraAnnual(who, yearOffset){
   const A = state.assumptions;
-  const income0 = state.brad.income+state.wes.income;
+  const income0 = personIncome0('brad')+personIncome0('wes');
   const incomeY = income0*Math.pow(1+A.incomeGrowth, yearOffset);
   const spend0 = livingSpendingAnnualToday();
   const spendY = spend0*Math.pow(1+A.inflation, yearOffset);
@@ -912,9 +903,10 @@ function incomeDrivenExtraAnnual(who, yearOffset){
 }
 function capRoomAnnual(who){
   const a = state[who].accounts;
-  const room401k = Math.max(state.assumptions.cap401k - (a.traditional.monthly+a.roth401k.monthly)*12, 0);
-  const roomIRA = Math.max(state.assumptions.capIRA - a.rothIRA.monthly*12, 0);
-  const roomHSA = Math.max(state.assumptions.capHSA - a.hsa.monthly*12, 0);
+  const sumBy = types => a.filter(x=>types.includes(x.type)).reduce((s,x)=>s+x.monthly,0);
+  const room401k = Math.max(state.assumptions.cap401k - sumBy(['traditional','roth401k'])*12, 0);
+  const roomIRA = Math.max(state.assumptions.capIRA - sumBy(['rothIRA'])*12, 0);
+  const roomHSA = Math.max(state.assumptions.capHSA - sumBy(['hsa'])*12, 0);
   return { room401k, roomIRA, roomHSA };
 }
 function ageFromDob(dobStr, today){
@@ -1105,7 +1097,7 @@ function renderDashboard(){
   const homeEquity = Math.max(state.realEstate.primary.value-state.realEstate.primary.balance,0);
   const rentalEquity = Math.max(state.realEstate.rental.value-state.realEstate.rental.balance,0);
   const netWorth = combinedAssets+homeEquity+rentalEquity;
-  const combinedIncome = state.brad.income+state.wes.income;
+  const combinedIncome = personIncome0("brad")+personIncome0("wes");
   const combinedContrib = (personContrib('brad')+personContrib('wes'))*12;
 
   document.getElementById('stat-networth').textContent = fmt$(netWorth);
@@ -1497,6 +1489,49 @@ function renderDebt(){
 }
 
 /* ===================== RENDER: BUDGET ===================== */
+const ACCOUNT_TYPES = [
+  ['traditional','Traditional 401(k)/IRA'],
+  ['roth401k','Roth 401(k)'],
+  ['rothIRA','Roth IRA'],
+  ['hsa','HSA'],
+  ['brokerage','Brokerage / taxable'],
+  ['other','Other']
+];
+function renderAccountsTable(who){
+  const list = state[who].accounts;
+  const typeOptions = t => ACCOUNT_TYPES.map(([v,label])=>`<option value="${v}"${t===v?' selected':''}>${label}</option>`).join('');
+  const rows = list.map((acc,idx)=>`<tr>
+    <td><input type="text" data-path="${who}.accounts.${idx}.name" style="width:118px; text-align:left;"></td>
+    <td><select data-path="${who}.accounts.${idx}.type" style="font-size:12px; padding:5px 6px;">${typeOptions(acc.type)}</select></td>
+    <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.balance" id="${who}-acct-${idx}-balance"></td>
+    <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.monthly"></td>
+    <td style="text-align:center;"><span class="account-remove" data-who="${who}" data-id="${acc.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span></td>
+  </tr>`).join('');
+  const html = `<table class="acct-table">
+    <thead><tr><th style="text-align:left;">${who==='brad'?"Brad's":"Wes's"} accounts</th><th>Type</th><th>Balance</th><th>Monthly</th><th></th></tr></thead>
+    <tbody>${rows}
+      <tr class="acct-total"><td>Total</td><td></td><td class="num" id="${who}-assets-total">n/a</td><td class="num" id="${who}-contrib-total">n/a</td><td></td></tr>
+    </tbody>
+  </table>
+  <button class="btn acct-add-btn" data-who="${who}">+ Add account</button>`;
+  document.getElementById(who+'-accounts-wrap').innerHTML = html;
+  document.querySelectorAll('#'+who+'-accounts-wrap [data-path]').forEach(bindOne);
+  document.querySelectorAll('#'+who+'-accounts-wrap .account-remove').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state[el.dataset.who].accounts = state[el.dataset.who].accounts.filter(a=>a.id!==el.dataset.id);
+      saveState();
+      renderInputsLive();
+    });
+  });
+  document.querySelectorAll('#'+who+'-accounts-wrap .acct-add-btn').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state[el.dataset.who].accounts.push({ id:'acct'+Date.now(), name:'New account', type:'brokerage', balance:0, monthly:0 });
+      saveState();
+      renderInputsLive();
+    });
+  });
+}
+
 function renderExpenseTable(){
   document.getElementById('expense-tbody').innerHTML = state.expenses.map(exp=>{
     const idx = state.expenses.indexOf(exp);
@@ -1524,7 +1559,7 @@ function renderExpenseTable(){
 
 function renderBudget(){
   renderExpenseTable();
-  const bradM = state.brad.income/12, wesM = state.wes.income/12, rentM = state.realEstate.rental.rentIncome;
+  const bradM = personIncome0("brad")/12, wesM = personIncome0("wes")/12, rentM = state.realEstate.rental.rentIncome;
   const incomeTotal = bradM+wesM+rentM;
   const taxes = incomeTotal*(state.tax.incomeTaxRate+state.tax.stateTaxRate);
   const essential = essentialMonthlyTotal();
@@ -1589,6 +1624,8 @@ function renderProjection(){
 /* ===================== RENDER: INPUTS (live labels) ===================== */
 function renderInputsLive(){
   const today = new Date();
+  renderAccountsTable('brad');
+  renderAccountsTable('wes');
   document.getElementById('brad-age-hint').textContent = 'currently '+ageFromDob(state.brad.dob,today);
   document.getElementById('wes-age-hint').textContent = 'currently '+ageFromDob(state.wes.dob,today);
   const cf = state.realEstate.rental.rentIncome - state.realEstate.rental.expenses - state.realEstate.rental.piPayment - state.realEstate.rental.escrow;
@@ -1608,13 +1645,18 @@ function renderInputsLive(){
   document.getElementById('brad-cap-room').textContent = `Room left this year: ${fmt$full(bradRoom.room401k)} in 401(k), ${fmt$full(bradRoom.roomIRA)} in Roth IRA, ${fmt$full(bradRoom.roomHSA)} in HSA.`;
   document.getElementById('wes-cap-room').textContent = `Room left this year: ${fmt$full(wesRoom.room401k)} in 401(k), ${fmt$full(wesRoom.roomIRA)} in Roth IRA, ${fmt$full(wesRoom.roomHSA)} in HSA.`;
 
-  const bradA = state.brad.accounts, wesA = state.wes.accounts;
-  const bradUnsplit = bradA.roth401k.balance===0 && bradA.rothIRA.balance===0 && bradA.hsa.balance===0 && bradA.brokerage.balance===0 && bradA.traditional.balance>0;
-  const wesUnsplit = wesA.roth401k.balance===0 && wesA.rothIRA.balance===0 && wesA.hsa.balance===0 && wesA.brokerage.balance===0 && wesA.traditional.balance>0;
-  document.getElementById('brad-trad-balance').classList.toggle('placeholder-guess', bradUnsplit);
-  document.getElementById('brad-trad-balance').title = bradUnsplit ? 'Unverified: your full total is parked here as a placeholder. Split it across your real accounts.' : '';
-  document.getElementById('wes-trad-balance').classList.toggle('placeholder-guess', wesUnsplit);
-  document.getElementById('wes-trad-balance').title = wesUnsplit ? 'Unverified: your full total is parked here as a placeholder. Split it across your real accounts.' : '';
+  function flagUnsplitGuess(who){
+    const list = state[who].accounts;
+    const nonzero = list.filter(a=>a.balance>0);
+    const isGuess = nonzero.length===1 && list.length>1;
+    if(isGuess){
+      const idx = list.indexOf(nonzero[0]);
+      const el = document.getElementById(`${who}-acct-${idx}-balance`);
+      if(el){ el.classList.add('placeholder-guess'); el.title = 'Unverified: your full total is parked here as a placeholder. Split it across your real accounts.'; }
+    }
+  }
+  flagUnsplitGuess('brad');
+  flagUnsplitGuess('wes');
 
   ['in-primary-value','in-primary-balance'].forEach(id=>{
     document.getElementById(id).classList.toggle('placeholder-empty', Number(document.getElementById(id).value)===0);
