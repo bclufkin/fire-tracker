@@ -234,9 +234,11 @@
     background:var(--teal-wash); border-radius:99px; padding:4px 11px; margin:0 0 8px;
   }
   .personhead.wes{ color:var(--indigo); background:var(--indigo-wash); }
-  .personblock{ border-left:3px solid var(--teal); padding:2px 0 4px 14px; margin:14px 0 0 -2px; }
-  .personblock.wes{ border-left-color:var(--indigo); }
-  .personblock .fieldrow{ margin:0 -12px 0 -14px; padding-left:14px; }
+  .personblock{ border-left:3px solid var(--teal); background:var(--teal-wash); border-radius:0 8px 8px 0; padding:8px 10px 8px 14px; margin:14px -2px 0 -2px; }
+  .personblock.wes{ border-left-color:var(--indigo); background:var(--indigo-wash); }
+  .personblock .fieldrow{ margin:0 -10px 0 -14px; padding-left:14px; }
+  .personblock .fieldrow:hover{ background:rgba(255,255,255,0.5); }
+  .personblock .acct-table thead tr th{ background:var(--ink); }
   .acct-add-btn{ font-size:11.5px; padding:5px 12px; margin-top:6px; }
   .assumptext{ font-size:12px; color:var(--ink-soft); background:var(--gold-wash); border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:11px 15px; margin-top:14px; line-height:1.65; }
   .assumptext b{ color:var(--ink); }
@@ -513,9 +515,13 @@
           <tr><td>Chubby FIRE multiplier<span class="hint">&times; Traditional</span></td><td class="pval" style="white-space:normal;"><div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;"><input type="number" step="0.05" data-path="fire.chubbyMultiplier" style="width:60px;">&times;<span id="fire-chubby-display" style="font-weight:600; font-size:11.5px;">n/a</span></div></td></tr>
           <tr><td>Fat FIRE multiplier<span class="hint">&times; Traditional</span></td><td class="pval" style="white-space:normal;"><div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;"><input type="number" step="0.05" data-path="fire.fatMultiplier" style="width:60px;">&times;<span id="fire-fat-display" style="font-weight:600; font-size:11.5px;">n/a</span></div></td></tr>
           <tr><td>Barista part-time income<span class="hint">offsets Traditional's spending target</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="fire.baristaIncome"></td></tr>
+          <tr><td>Coast FIRE<span class="hint">no spending target here on purpose, see below</span></td><td class="pval" style="color:var(--ink-faint); font-style:italic;">not a spending amount</td></tr>
         </tbody></table>
         <div class="assumptext" style="margin-top:12px;">
           Want a different Lean or Traditional number than your actual current spending? Edit the expense list on the Budget tab (or add a line like "extra retirement travel") rather than typing a number here. That keeps every number in this tool pulling from one real source instead of two disconnected guesses.
+        </div>
+        <div class="assumptext" style="margin-top:12px;">
+          <b>Why Coast FIRE has no spending target above:</b> the other four types all ask "what portfolio funds this much annual spending, forever, at a 4% withdrawal rate." Coast FIRE asks a completely different question: "how much would I need invested today, contributing nothing else, for market growth alone to reach my Traditional number by the time Wes turns 65?" There's no dollars-per-year input to set for that question, which is exactly why it's missing from this list rather than broken. Its actual number still shows on its own card on the Dashboard, just computed from Traditional's target rather than one of its own.
         </div>
       </div>
 
@@ -716,7 +722,7 @@
       <div class="rowbar">
         <div>
           <h3>Snapshots</h3>
-          <div class="sub" style="margin-bottom:0;">Add a new one whenever you check your real balances. Real estate equity is optional; leave at 0 to track investable assets only.</div>
+          <div class="sub" style="margin-bottom:0;">Adding a snapshot pre-fills today's figures from your accounts and real estate on the Inputs tab, dated today. Edit any of it afterward if your real balances differ.</div>
         </div>
         <button id="snapshot-add-btn" class="btn">+ Add snapshot</button>
       </div>
@@ -805,7 +811,7 @@
     <div class="card">
       <h3>Net worth projection engine</h3>
       <div class="sub" style="margin-bottom:0;">
-        Each year, each person's investable assets compound at your assumed investment return, then that year's contribution (including any employer match) is added. Contributions stop the year that person reaches their target retirement age. Real estate uses standard loan amortization (monthly compounding on the actual rate and payment you enter) for the mortgage balance, and the home/rental value grows at your assumed appreciation rate. Home equity on the primary residence is split 50/50 between you; the rental condo's equity goes entirely to Wes, matching sole ownership. Every projection, including the FIRE cards, Monte Carlo, and the full table, runs out to your "plan to age" setting: specifically, however many years it takes for the later of the two of you to reach that age.
+        Every projection now runs month by month, not year by year. Each month, each person's investable assets compound at your assumed investment return (converted to a monthly-equivalent rate) and that month's contribution, including any employer match and any secondary/side income folded into the income-driven calculation, is added. Contributions stop the month that person reaches their target retirement age, not just the year. Real estate uses standard monthly loan amortization on the actual rate and payment you enter, and the home/rental value grows at your assumed appreciation rate, also converted to a monthly-equivalent rate. Home equity on the primary residence is split 50/50 between you; the rental condo's equity goes entirely to Wes, matching sole ownership. Every projection, including the FIRE cards, Monte Carlo, and the full table, runs out to your "plan to age" setting: specifically, however many months it takes for the later of the two of you to reach that age. The Projection tab's table still displays one row per year for readability, sampled from this monthly engine, but achievement dates everywhere else (FIRE cards, Monte Carlo) are precise to the month.
       </div>
     </div>
 
@@ -856,14 +862,14 @@
     <div class="card" style="margin-top:16px;">
       <h3>Monte Carlo simulation</h3>
       <div class="sub" style="margin-bottom:0;">
-        Runs 300 independent simulated futures. In each one, every year gets its own random investment return drawn from a normal distribution centered on your assumed return, with the spread set by the volatility input (default 15 percentage points of standard deviation), generated with a standard Box-Muller transform. Both of your combined investable assets share the same randomly drawn return in a given year in a given simulation, since a real market year doesn't move your accounts independently. Contributions follow whichever scenario pill is selected on the Dashboard, including the flat-rate or income-driven mode if "Increase over time" is active. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the plan horizon. "Typical year" is the median year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth in each year; the dark line is the median (50th percentile) path.
+        Runs 300 independent simulated futures, month by month. Each month gets its own random investment return drawn from a normal distribution generated with a standard Box-Muller transform, centered on your assumed return converted to a monthly-equivalent mean, with the monthly standard deviation set by scaling your volatility input by the square root of 12 (the standard way to convert annual volatility to monthly). Both of your combined investable assets share the same randomly drawn return in a given month in a given simulation, since a real market month doesn't move your accounts independently. Contributions follow whichever scenario pill is selected on the Dashboard, including the flat-rate or income-driven mode if "Increase over time" is active. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the plan horizon. "Typical month" is the median month and year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth at each point; the dark line is the median (50th percentile) path.
       </div>
     </div>
 
     <div class="card" style="margin-top:16px;">
-      <h3>Debt payoff (avalanche &amp; snowball)</h3>
+      <h3>Debt payoff (avalanche, snowball &amp; minimums only)</h3>
       <div class="sub" style="margin-bottom:0;">
-        Simulated month by month, not year by year. Each month, every debt accrues interest on its remaining balance at its stated annual rate divided by 12, then its own minimum payment is applied. Any extra monthly payment you've set, plus the full payment amount of any debt that's already been paid off, is pooled together and thrown at whichever debt is "first" under your chosen strategy: <b>avalanche</b> orders by highest interest rate first (minimizes total interest paid); <b>snowball</b> orders by smallest remaining balance first (clears individual debts faster). That's the classic "debt snowball" rolling effect: freed-up minimum payments permanently join the extra-payment pool once a debt is gone.
+        Simulated month by month. Each month, every debt accrues interest on its remaining balance at its stated annual rate divided by 12, then a payment is applied. Two separate payment figures are tracked per debt: the required minimum and what you're actually paying, which can be higher if you're already voluntarily overpaying something. Under <b>avalanche</b> or <b>snowball</b>, each debt's actual payment is applied first, then any extra monthly payment you've set, plus the full payment amount of any debt that's already been paid off, is pooled together and thrown at whichever debt is "first": avalanche orders by highest interest rate first (minimizes total interest paid); snowball orders by smallest remaining balance first (clears individual debts faster). That's the classic "debt snowball" rolling effect: freed-up payments permanently join the extra-payment pool once a debt is gone. Under <b>minimums only</b>, every debt gets exactly its minimum payment and nothing else. The extra-payment input and the rolling-freed-payments mechanic are both switched off entirely, showing the slowest, most conservative payoff baseline with no acceleration at all.
       </div>
     </div>
 
@@ -874,8 +880,29 @@
       </div>
     </div>
 
+    <div class="card" style="margin-top:16px;">
+      <h3>Savings goals</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Each goal is independent of the FIRE machinery and the emergency fund. Months remaining is calculated from today's date to your target date. Monthly savings needed is simply <code>(target amount &minus; current amount) &divide; months remaining</code>, floored at the full remaining amount if the target date has already passed. No investment growth is assumed on money set aside for a goal; it's treated as cash you're accumulating, not investing.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Net worth history</h3>
+      <div class="sub" style="margin-bottom:0;">
+        Purely a logging tool; nothing here feeds back into any projection. Clicking "Add snapshot" pre-fills today's date and today's actual figures pulled live from your accounts and real estate equity elsewhere in the tool, so you're not re-typing numbers that already exist. Every field is editable afterward if you want to log a different value or backfill an earlier date. The chart plots your logged points directly against the "keep current pace" projected line for the same dates, so drift between plan and reality is visible at a glance.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Estate basics</h3>
+      <div class="sub" style="margin-bottom:0;">
+        A checklist only. Nothing on this tab is calculated, projected, or used anywhere else in the tool.
+      </div>
+    </div>
+
     <div class="assumptext" style="margin-top:16px;">
-      <b>What this tool is not:</b> it isn't tax software, doesn't model account-specific withdrawal ordering or Roth conversion strategy, doesn't do real bracket-based tax calculations, and its Monte Carlo engine uses one simplified random-return draw per year rather than modeling actual asset-class behavior or sequence-of-returns nuance beyond that. Treat every number here as a planning estimate to sanity-check decisions against, not as financial or tax advice.
+      <b>What this tool is not:</b> it isn't tax software, doesn't model account-specific withdrawal ordering or Roth conversion strategy, doesn't do real bracket-based tax calculations, and its Monte Carlo engine uses one simplified random-return draw per month rather than modeling actual asset-class behavior or sequence-of-returns nuance beyond that. Treat every number here as a planning estimate to sanity-check decisions against, not as financial or tax advice.
     </div>
   </section>
 
@@ -1907,7 +1934,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.4.1';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2052,7 +2079,14 @@ document.getElementById('goal-add-btn').addEventListener('click', ()=>{
   renderGoals();
 });
 document.getElementById('snapshot-add-btn').addEventListener('click', ()=>{
-  state.netWorthHistory.push({ id:'snap'+Date.now(), date:new Date().toISOString().slice(0,10), bradAssets:0, wesAssets:0, realEstateEquity:0 });
+  const homeEquity = Math.max(state.realEstate.primary.value-state.realEstate.primary.balance,0);
+  const rentalEquity = Math.max(state.realEstate.rental.value-state.realEstate.rental.balance,0);
+  state.netWorthHistory.push({
+    id:'snap'+Date.now(), date:new Date().toISOString().slice(0,10),
+    bradAssets: Math.round(personAssets('brad')),
+    wesAssets: Math.round(personAssets('wes')),
+    realEstateEquity: Math.round(homeEquity+rentalEquity)
+  });
   saveState();
   renderHistory();
 });
