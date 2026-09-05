@@ -850,6 +850,18 @@ const state = {
   debtExtra: 0
 };
 
+function ageMonthsFromDob(dobStr, today){
+  const dob = new Date(dobStr+'T00:00:00');
+  let months = (today.getFullYear()-dob.getFullYear())*12 + (today.getMonth()-dob.getMonth());
+  if(today.getDate() < dob.getDate()) months--;
+  return months;
+}
+function horizonMonths(){
+  const bradM0 = ageMonthsFromDob(state.brad.dob, new Date());
+  const wesM0 = ageMonthsFromDob(state.wes.dob, new Date());
+  const pM = state.assumptions.planToAge*12;
+  return Math.max(pM-bradM0, pM-wesM0, 120);
+}
 function horizonYears(){
   const bradAge0 = ageFromDob(state.brad.dob, new Date());
   const wesAge0 = ageFromDob(state.wes.dob, new Date());
@@ -933,27 +945,24 @@ function fmt$full(v){ if(v===null||v===undefined||isNaN(v)) return 'n/a'; return
 function fmtPct(v){ return (v*100).toFixed(1)+'%'; }
 
 /* ===================== ENGINE ===================== */
-function amortizeYear(balance, annualRate, monthlyPayment){
+function amortizeMonth(balance, annualRate, monthlyPayment){
   if(balance<=0) return 0;
   const r = annualRate/12;
-  let b = balance;
-  for(let m=0;m<12;m++){
-    if(b<=0){ b=0; break; }
-    const interest = b*r;
-    let principal = monthlyPayment - interest;
-    if(principal<0) principal = 0;
-    b -= principal;
-    if(b<0) b = 0;
-  }
+  const interest = balance*r;
+  let principal = monthlyPayment - interest;
+  if(principal<0) principal = 0;
+  let b = balance - principal;
+  if(b<0) b = 0;
   return b;
 }
 
 function project(scenarioKey){
   const S = state;
   const today = new Date();
-  const bradAge0 = ageFromDob(S.brad.dob, today);
-  const wesAge0 = ageFromDob(S.wes.dob, today);
-  const year0 = today.getFullYear();
+  const bradM0 = ageMonthsFromDob(S.brad.dob, today);
+  const wesM0 = ageMonthsFromDob(S.wes.dob, today);
+  const startYear = today.getFullYear();
+  const startMonth = today.getMonth();
 
   let bradAssets = personAssets('brad');
   let wesAssets = personAssets('wes');
@@ -962,35 +971,42 @@ function project(scenarioKey){
   let rentalValue = S.realEstate.rental.value;
   let rentalBalance = S.realEstate.rental.balance;
 
+  const monthlyReturn = Math.pow(1+S.assumptions.investmentReturn, 1/12)-1;
+  const monthlyHomeApp = Math.pow(1+S.assumptions.homeAppreciation, 1/12)-1;
+  const totalMonths = horizonMonths();
+
   const rows = [];
-  for(let i=0;i<horizonYears();i++){
-    const bradAge = bradAge0+i;
-    const wesAge = wesAge0+i;
+  for(let i=0;i<totalMonths;i++){
+    const bradAgeMonths = bradM0+i;
+    const wesAgeMonths = wesM0+i;
+    const bradAge = Math.floor(bradAgeMonths/12);
+    const wesAge = Math.floor(wesAgeMonths/12);
+    const yearFrac = i/12;
 
     if(i>0){
       let bradContrib=0, wesContrib=0;
-      if(bradAge < S.brad.retireAge){
-        if(scenarioKey==='continue') bradContrib = personContrib('brad')*12;
+      if(bradAgeMonths < S.brad.retireAge*12){
+        if(scenarioKey==='continue') bradContrib = personContrib('brad');
         else if(scenarioKey==='increase'){
           bradContrib = S.contributionMode==='incomeDriven'
-            ? personContrib('brad')*12 + incomeDrivenExtraAnnual('brad', i)
-            : personContrib('brad')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+            ? personContrib('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12
+            : personContrib('brad')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
         }
       }
-      if(wesAge < S.wes.retireAge){
-        if(scenarioKey==='continue') wesContrib = personContrib('wes')*12;
+      if(wesAgeMonths < S.wes.retireAge*12){
+        if(scenarioKey==='continue') wesContrib = personContrib('wes');
         else if(scenarioKey==='increase'){
           wesContrib = S.contributionMode==='incomeDriven'
-            ? personContrib('wes')*12 + incomeDrivenExtraAnnual('wes', i)
-            : personContrib('wes')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+            ? personContrib('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12
+            : personContrib('wes')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
         }
       }
-      bradAssets = bradAssets*(1+S.assumptions.investmentReturn) + bradContrib;
-      wesAssets = wesAssets*(1+S.assumptions.investmentReturn) + wesContrib;
-      homeBalance = amortizeYear(homeBalance, S.realEstate.primary.rate, S.realEstate.primary.piPayment);
-      rentalBalance = amortizeYear(rentalBalance, S.realEstate.rental.rate, S.realEstate.rental.piPayment);
-      homeValue *= (1+S.assumptions.homeAppreciation);
-      rentalValue *= (1+S.assumptions.homeAppreciation);
+      bradAssets = bradAssets*(1+monthlyReturn) + bradContrib;
+      wesAssets = wesAssets*(1+monthlyReturn) + wesContrib;
+      homeBalance = amortizeMonth(homeBalance, S.realEstate.primary.rate, S.realEstate.primary.piPayment);
+      rentalBalance = amortizeMonth(rentalBalance, S.realEstate.rental.rate, S.realEstate.rental.piPayment);
+      homeValue *= (1+monthlyHomeApp);
+      rentalValue *= (1+monthlyHomeApp);
     }
 
     const homeEquity = Math.max(homeValue-homeBalance,0);
@@ -1000,8 +1016,10 @@ function project(scenarioKey){
     const bradNW = bradAssets+bradHomeEq;
     const wesNW = wesAssets+wesHomeEq+rentalEquity;
 
+    const calMonth = (startMonth+i)%12;
+    const calYear = startYear+Math.floor((startMonth+i)/12);
     rows.push({
-      i, year:year0+i, bradAge, wesAge,
+      i, yearFrac, year:calYear, month:calMonth, bradAge, wesAge, bradAgeMonths, wesAgeMonths,
       bradAssets, wesAssets, combinedAssets:bradAssets+wesAssets,
       homeEquity, rentalEquity,
       bradNW, wesNW, jointNW:bradNW+wesNW
@@ -1044,29 +1062,31 @@ function healthcareCostAt(bradAge, wesAge, yearOffset){
   if(wesAge < 65 && wesAge >= state.wes.retireAge) cost += H.wesMonthly*12*infl;
   return cost;
 }
-function requiredNestEgg(type, row, futureTradNumber, iRetire){
+function requiredNestEgg(type, row, futureTradNumber, iRetireMonths){
   const A = state.assumptions;
   if(type==='coast'){
-    const remaining = Math.max(iRetire-row.i,0);
-    return futureTradNumber/Math.pow(1+A.investmentReturn, remaining);
+    const remainingMonths = Math.max(iRetireMonths-row.i,0);
+    return futureTradNumber/Math.pow(1+A.investmentReturn, remainingMonths/12);
   }
+  const yearFrac = row.i/12;
   const spendToday = fireSpendingToday(type);
-  const spendFuture = spendToday*Math.pow(1+A.inflation, row.i) + healthcareCostAt(row.bradAge, row.wesAge, row.i);
-  const other = otherIncomeAt(row.bradAge, row.wesAge, row.i);
+  const spendFuture = spendToday*Math.pow(1+A.inflation, yearFrac) + healthcareCostAt(row.bradAge, row.wesAge, yearFrac);
+  const other = otherIncomeAt(row.bradAge, row.wesAge, yearFrac);
   return Math.max(spendFuture-other,0)/taxAdjustedSWR();
 }
 
 function buildFireSeries(type, rowsByScenario){
   const A = state.assumptions;
-  const wesAge0 = ageFromDob(state.wes.dob, new Date());
-  const iRetire = Math.max(state.wes.retireAge - wesAge0, 0);
+  const wesM0 = ageMonthsFromDob(state.wes.dob, new Date());
+  const iRetireMonths = Math.max(state.wes.retireAge*12 - wesM0, 0);
   let futureTradNumber = 0;
   if(type==='coast'){
     const tradSpend = fireSpendingToday('traditional');
-    const rowAtRetire = rowsByScenario.continue[Math.min(iRetire, horizonYears()-1)];
-    const other = otherIncomeAt(rowAtRetire.bradAge, rowAtRetire.wesAge, iRetire);
-    const hc = healthcareCostAt(rowAtRetire.bradAge, rowAtRetire.wesAge, iRetire);
-    futureTradNumber = Math.max(tradSpend*Math.pow(1+A.inflation, iRetire)-other+hc,0)/taxAdjustedSWR();
+    const rowAtRetire = rowsByScenario.continue[Math.min(iRetireMonths, horizonMonths()-1)];
+    const yf = iRetireMonths/12;
+    const other = otherIncomeAt(rowAtRetire.bradAge, rowAtRetire.wesAge, yf);
+    const hc = healthcareCostAt(rowAtRetire.bradAge, rowAtRetire.wesAge, yf);
+    futureTradNumber = Math.max(tradSpend*Math.pow(1+A.inflation, yf)-other+hc,0)/taxAdjustedSWR();
   }
   const series = {};
   const achieved = {};
@@ -1074,14 +1094,14 @@ function buildFireSeries(type, rowsByScenario){
     const rows = rowsByScenario[scn];
     const vals = []; let firstHit = null;
     rows.forEach(row=>{
-      const req = requiredNestEgg(type, row, futureTradNumber, iRetire);
+      const req = requiredNestEgg(type, row, futureTradNumber, iRetireMonths);
       if(firstHit===null && row.combinedAssets >= req) firstHit = row;
       vals.push(row.combinedAssets);
     });
     series[scn] = vals;
     achieved[scn] = firstHit;
   });
-  const targetVals = rowsByScenario.continue.map(row=>requiredNestEgg(type, row, futureTradNumber, iRetire));
+  const targetVals = rowsByScenario.continue.map(row=>requiredNestEgg(type, row, futureTradNumber, iRetireMonths));
   const number0 = targetVals[0];
   const progress = number0>0 ? Math.min(personAssets('brad')+personAssets('wes'), number0)/number0 : 0;
   return { years: rowsByScenario.continue.map(r=>r.year), series, targetVals, achieved, numberToday:number0, progress };
@@ -1194,9 +1214,10 @@ function renderFireCards(rowsContinueUnused){
     });
   });
 }
+const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function achievechip(label, row){
-  const v = row ? row.year+' (Brad '+row.bradAge+' / Wes '+row.wesAge+')' : 'beyond 56 yrs';
-  return '<div class="achievechip"><div class="k">'+label+'</div><div class="v">'+(row?row.year:'n/a')+'</div></div>';
+  const disp = row ? MONTH_ABBR[row.month]+' '+row.year : 'n/a';
+  return '<div class="achievechip"><div class="k">'+label+'</div><div class="v">'+disp+'</div></div>';
 }
 
 /* ===================== DEBT PAYOFF ENGINE ===================== */
@@ -1252,45 +1273,54 @@ function randNormal(mean, sd){
 }
 function runMonteCarlo(nSims){
   const A = state.assumptions;
-  const bradAge0 = ageFromDob(state.brad.dob, new Date());
-  const wesAge0 = ageFromDob(state.wes.dob, new Date());
-  const year0 = new Date().getFullYear();
+  const bradM0 = ageMonthsFromDob(state.brad.dob, new Date());
+  const wesM0 = ageMonthsFromDob(state.wes.dob, new Date());
+  const startYear = new Date().getFullYear();
+  const startMonth = new Date().getMonth();
+  const totalMonths = horizonMonths();
 
   const rowsContinue = project('continue');
-  const wesRetireIdx = Math.max(state.wes.retireAge - wesAge0, 0);
+  const wesRetireMonths = Math.max(state.wes.retireAge*12 - wesM0, 0);
   const tradSpend = fireSpendingToday('traditional');
-  const otherAtRetire = otherIncomeAt(rowsContinue[Math.min(wesRetireIdx,horizonYears()-1)].bradAge, rowsContinue[Math.min(wesRetireIdx,horizonYears()-1)].wesAge, wesRetireIdx);
-  const hcAtRetire = healthcareCostAt(rowsContinue[Math.min(wesRetireIdx,horizonYears()-1)].bradAge, rowsContinue[Math.min(wesRetireIdx,horizonYears()-1)].wesAge, wesRetireIdx);
-  const futureTradNumber = Math.max(tradSpend*Math.pow(1+A.inflation, wesRetireIdx)-otherAtRetire+hcAtRetire,0)/taxAdjustedSWR();
+  const retireRow = rowsContinue[Math.min(wesRetireMonths,totalMonths-1)];
+  const yfRetire = wesRetireMonths/12;
+  const otherAtRetire = otherIncomeAt(retireRow.bradAge, retireRow.wesAge, yfRetire);
+  const hcAtRetire = healthcareCostAt(retireRow.bradAge, retireRow.wesAge, yfRetire);
+  const futureTradNumber = Math.max(tradSpend*Math.pow(1+A.inflation, yfRetire)-otherAtRetire+hcAtRetire,0)/taxAdjustedSWR();
+
+  const monthlyMean = Math.pow(1+A.investmentReturn, 1/12)-1;
+  const monthlyStdev = A.returnStdev/Math.sqrt(12);
 
   const types = Object.keys(FIRE_META);
-  const successCount = {}; const achievedYears = {};
-  types.forEach(t=>{ successCount[t]=0; achievedYears[t]=[]; });
+  const successCount = {}; const achievedYears = {}; const achievedRows = {};
+  types.forEach(t=>{ successCount[t]=0; achievedYears[t]=[]; achievedRows[t]=[]; });
 
   const trajectories = [];
   for(let s=0; s<nSims; s++){
     let bradAssets = personAssets('brad'), wesAssets = personAssets('wes');
     const traj = [];
     const foundThisSim = {}; types.forEach(t=>foundThisSim[t]=false);
-    for(let i=0;i<horizonYears();i++){
-      const bradAge = bradAge0+i, wesAge = wesAge0+i;
+    for(let i=0;i<totalMonths;i++){
+      const bradAgeMonths = bradM0+i, wesAgeMonths = wesM0+i;
+      const bradAge = Math.floor(bradAgeMonths/12), wesAge = Math.floor(wesAgeMonths/12);
       if(i>0){
-        const r = randNormal(A.investmentReturn, A.returnStdev);
+        const r = randNormal(monthlyMean, monthlyStdev);
         let bradContrib=0, wesContrib=0;
-        if(bradAge < state.brad.retireAge){
-          if(nwScenario==='continue') bradContrib = personContrib('brad')*12;
+        const yearFrac = i/12;
+        if(bradAgeMonths < state.brad.retireAge*12){
+          if(nwScenario==='continue') bradContrib = personContrib('brad');
           else if(nwScenario==='increase'){
             bradContrib = state.contributionMode==='incomeDriven'
-              ? personContrib('brad')*12 + incomeDrivenExtraAnnual('brad', i)
-              : personContrib('brad')*12*Math.pow(1+A.contributionGrowth,i);
+              ? personContrib('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12
+              : personContrib('brad')*Math.pow(1+A.contributionGrowth,yearFrac);
           }
         }
-        if(wesAge < state.wes.retireAge){
-          if(nwScenario==='continue') wesContrib = personContrib('wes')*12;
+        if(wesAgeMonths < state.wes.retireAge*12){
+          if(nwScenario==='continue') wesContrib = personContrib('wes');
           else if(nwScenario==='increase'){
             wesContrib = state.contributionMode==='incomeDriven'
-              ? personContrib('wes')*12 + incomeDrivenExtraAnnual('wes', i)
-              : personContrib('wes')*12*Math.pow(1+A.contributionGrowth,i);
+              ? personContrib('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12
+              : personContrib('wes')*Math.pow(1+A.contributionGrowth,yearFrac);
           }
         }
         bradAssets = Math.max(bradAssets*(1+r)+bradContrib, 0);
@@ -1301,24 +1331,30 @@ function runMonteCarlo(nSims){
       const row = { i, bradAge, wesAge };
       types.forEach(t=>{
         if(foundThisSim[t]) return;
-        const req = requiredNestEgg(t, row, futureTradNumber, wesRetireIdx);
-        if(combined >= req){ foundThisSim[t]=true; successCount[t]++; achievedYears[t].push(year0+i); }
+        const req = requiredNestEgg(t, row, futureTradNumber, wesRetireMonths);
+        if(combined >= req){
+          foundThisSim[t]=true; successCount[t]++;
+          const calMonth = (startMonth+i)%12, calYear = startYear+Math.floor((startMonth+i)/12);
+          achievedYears[t].push(calYear);
+          achievedRows[t].push({year:calYear, month:calMonth});
+        }
       });
     }
     trajectories.push(traj);
   }
 
   const bands = [];
-  for(let i=0;i<horizonYears();i++){
+  for(let i=0;i<totalMonths;i++){
     const vals = trajectories.map(t=>t[i]).sort((a,b)=>a-b);
     const pct = p => vals[Math.min(vals.length-1, Math.max(0, Math.floor(p*(vals.length-1))))];
-    bands.push({ year:year0+i, p10:pct(0.10), p50:pct(0.50), p90:pct(0.90) });
+    const calMonth = (startMonth+i)%12, calYear = startYear+Math.floor((startMonth+i)/12);
+    bands.push({ year:calYear, month:calMonth, p10:pct(0.10), p50:pct(0.50), p90:pct(0.90) });
   }
 
   const summary = types.map(t=>{
-    const yrs = achievedYears[t].slice().sort((a,b)=>a-b);
-    const median = yrs.length ? yrs[Math.floor(yrs.length/2)] : null;
-    return { type:t, title:FIRE_META[t].title, prob: successCount[t]/nSims, medianYear: median };
+    const sorted = achievedRows[t].slice().sort((a,b)=> (a.year*12+a.month)-(b.year*12+b.month));
+    const mid = sorted.length ? sorted[Math.floor(sorted.length/2)] : null;
+    return { type:t, title:FIRE_META[t].title, prob: successCount[t]/nSims, medianRow: mid };
   });
 
   return { bands, summary };
@@ -1337,7 +1373,7 @@ function renderMonteCarloResults(){
           <tbody>${R.summary.map(s=>`<tr>
             <td style="text-align:left; font-weight:600;">${s.title}</td>
             <td class="num" style="color:${s.prob>=0.75?'var(--green)':s.prob>=0.4?'var(--gold)':'var(--rust)'}; font-weight:700;">${(s.prob*100).toFixed(0)}%</td>
-            <td class="num">${s.medianYear || 'n/a'}</td>
+            <td class="num">${s.medianRow ? MONTH_ABBR[s.medianRow.month]+' '+s.medianRow.year : 'n/a'}</td>
           </tr>`).join('')}</tbody>
         </table>
       </div>`;
@@ -1612,10 +1648,11 @@ function renderBudget(){
 }
 
 function renderProjection(){
-  const rows = project(projScenario).slice(0, projHorizon);
+  const allRows = project(projScenario);
+  const yearly = allRows.filter(r=>r.i%12===0).slice(0, projHorizon);
   const tbody = document.getElementById('proj-tbody');
-  const html = rows.map(r=>{
-    return '<tr><td>'+r.year+'</td><td>'+r.bradAge+'</td><td>'+r.wesAge+'</td>'+
+  const html = yearly.map(r=>{
+    return '<tr><td>'+MONTH_ABBR[r.month]+' '+r.year+'</td><td>'+r.bradAge+'</td><td>'+r.wesAge+'</td>'+
       '<td class="num">'+fmt$full(r.bradAssets)+'</td>'+
       '<td class="num">'+fmt$full(r.wesAssets)+'</td>'+
       '<td class="num">'+fmt$full(r.combinedAssets)+'</td>'+
