@@ -361,6 +361,16 @@
       </div>
     </div>
 
+    <div class="rowbar" style="margin-bottom:0;">
+      <div class="sub" style="margin-bottom:0;">Chart zoom, applies to every chart on this page:</div>
+      <div class="pillgroup" id="dash-horizon-pills">
+        <div class="pill" data-h="10">10 yrs</div>
+        <div class="pill" data-h="20">20 yrs</div>
+        <div class="pill" data-h="30">30 yrs</div>
+        <div class="pill active" data-h="0">Full</div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="rowbar">
         <div>
@@ -408,6 +418,23 @@
       <div class="firegrid" id="firegrid"></div>
       <div class="assumptext" style="margin-top:16px;">
         <b>What "today's dollars" means:</b> every spending target on this page (Lean FIRE's $109,500, for example) is stated in today's buying power. The model does not assume you withdraw exactly that many nominal dollars in the future. Instead it inflates the target forward each year (at the inflation rate you set) to find the actual future dollar amount you would need, then compares your projected nominal assets against that inflated number. So $109,500 of Lean FIRE spending means: whatever it costs, years from now, to buy what $109,500 buys today.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="rowbar">
+        <div>
+          <h3>Liquid assets over time</h3>
+          <div class="sub" style="margin-bottom:0;">Cash and investments only, no real estate. Accumulates until you're both fully retired, then draws down to cover Traditional-level spending, inflation-adjusted, until (or if) it runs out.</div>
+        </div>
+        <div class="pillgroup" id="creep-toggle-pills">
+          <div class="pill active" data-creep="0" title="Spending in retirement grows only with inflation, no real increase.">No lifestyle creep</div>
+          <div class="pill" data-creep="1" title="Spending in retirement grows faster than inflation, by the rate set on the Inputs tab.">Some lifestyle creep</div>
+        </div>
+      </div>
+      <div class="chartwrap" style="height:280px;"><canvas id="chart-liquid"></canvas></div>
+      <div class="assumptext" style="margin-top:12px;">
+        Uses Traditional FIRE's spending target and whichever accumulation scenario is selected above. "Some lifestyle creep" adds an extra <span id="creep-rate-display">1.0%</span>/yr on top of inflation, editable as "Lifestyle creep rate" on the Inputs tab.
       </div>
     </div>
 
@@ -500,6 +527,7 @@
           <tr><td>401(k) annual cap<span class="hint">per person, used by "income-driven" contribution growth</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.cap401k"></td></tr>
           <tr><td>IRA annual cap<span class="hint">per person, Roth IRA only</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capIRA"></td></tr>
           <tr><td>HSA annual cap<span class="hint">per person</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capHSA"></td></tr>
+          <tr><td>Lifestyle creep rate<span class="hint">extra spending growth above inflation, used by the Liquid Assets chart</span></td><td class="pval"><input type="number" step="0.1" data-path="assumptions.lifestyleCreepRate" data-pct="1"><span class="unit">%</span></td></tr>
         </tbody></table>
         <div class="assumptext">
           Investment return 7% and inflation 3% are common long-run planning defaults for a diversified stock and bond portfolio. Home appreciation 3.5% tracks the long-run US average. Mortgage rate defaults to 6.5%, a recent-vintage rate: replace it with your actual rate. The 3% contribution increase approximates how the IRS 401(k) contribution cap has typically crept up.
@@ -924,7 +952,7 @@ const state = {
     primary: { purchasePrice:0, value:0, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
     rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
   },
-  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300 },
+  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300, lifestyleCreepRate:0.01 },
   contributionMode: 'incomeDriven',
   expenses: [
     { id:'homeIns', name:'Home insurance', amount:184.50, category:'essential' },
@@ -969,6 +997,10 @@ function ageMonthsFromDob(dobStr, today){
   if(today.getDate() < dob.getDate()) months--;
   return months;
 }
+function sliceToHorizon(rows){
+  if(!dashHorizonYears) return rows;
+  return rows.slice(0, dashHorizonYears*12);
+}
 function horizonMonths(){
   const bradM0 = ageMonthsFromDob(state.brad.dob, new Date());
   const wesM0 = ageMonthsFromDob(state.wes.dob, new Date());
@@ -984,6 +1016,8 @@ function horizonYears(){
 let nwScenario = 'increase';
 let projScenario = 'stop';
 let projHorizon = 40;
+let dashHorizonYears = null;
+let includeLifestyleCreep = false;
 const charts = {};
 
 /* ===================== HELPERS ===================== */
@@ -1141,6 +1175,59 @@ function project(scenarioKey){
   return rows;
 }
 
+function projectLiquidDrawdown(scenarioKey, withCreep){
+  const S = state;
+  const today = new Date();
+  const bradM0 = ageMonthsFromDob(S.brad.dob, today);
+  const wesM0 = ageMonthsFromDob(S.wes.dob, today);
+  const startYear = today.getFullYear(), startMonth = today.getMonth();
+  const monthlyReturn = Math.pow(1+S.assumptions.investmentReturn, 1/12)-1;
+  const totalMonths = horizonMonths();
+  const bradRetireMonths = Math.max(S.brad.retireAge*12-bradM0, 0);
+  const wesRetireMonths = Math.max(S.wes.retireAge*12-wesM0, 0);
+  const fullRetireMonths = Math.max(bradRetireMonths, wesRetireMonths);
+  const spendToday = fireSpendingToday('traditional');
+  const creepRate = withCreep ? S.assumptions.lifestyleCreepRate : 0;
+
+  let combined = personAssets('brad')+personAssets('wes');
+  const rows = [];
+  for(let i=0;i<totalMonths;i++){
+    const bradAgeMonths = bradM0+i, wesAgeMonths = wesM0+i;
+    const bradAge = Math.floor(bradAgeMonths/12), wesAge = Math.floor(wesAgeMonths/12);
+    const yearFrac = i/12;
+    if(i>0){
+      if(i<=fullRetireMonths){
+        let bradContrib=0, wesContrib=0;
+        if(bradAgeMonths < S.brad.retireAge*12){
+          if(scenarioKey==='continue') bradContrib = personContrib('brad');
+          else if(scenarioKey==='increase'){
+            bradContrib = S.contributionMode==='incomeDriven'
+              ? personContrib('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12
+              : personContrib('brad')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+          }
+        }
+        if(wesAgeMonths < S.wes.retireAge*12){
+          if(scenarioKey==='continue') wesContrib = personContrib('wes');
+          else if(scenarioKey==='increase'){
+            wesContrib = S.contributionMode==='incomeDriven'
+              ? personContrib('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12
+              : personContrib('wes')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+          }
+        }
+        combined = combined*(1+monthlyReturn) + bradContrib + wesContrib;
+      } else {
+        const monthlySpend = spendToday*Math.pow(1+S.assumptions.inflation+creepRate, yearFrac)/12;
+        const other = otherIncomeAt(bradAge, wesAge, yearFrac)/12;
+        const netWithdrawal = Math.max(monthlySpend-other, 0);
+        combined = Math.max(combined*(1+monthlyReturn) - netWithdrawal, 0);
+      }
+    }
+    const calMonth = (startMonth+i)%12, calYear = startYear+Math.floor((startMonth+i)/12);
+    rows.push({ i, year:calYear, month:calMonth, bradAge, wesAge, liquid:combined });
+  }
+  return rows;
+}
+
 function fireLeanToday(){ return essentialMonthlyTotal()*12; }
 function fireTraditionalToday(){ return (essentialMonthlyTotal()+discretionaryMonthlyTotal())*12; }
 function fireChubbyToday(){ return fireTraditionalToday()*state.fire.chubbyMultiplier; }
@@ -1240,7 +1327,8 @@ function renderDashboard(){
   document.getElementById('stat-income').textContent = fmt$(combinedIncome);
   document.getElementById('stat-savingsrate').textContent = combinedIncome>0 ? fmtPct(combinedContrib/combinedIncome) : 'n/a';
 
-  const rows = project(nwScenario);
+  const rowsFull = project(nwScenario);
+  const rows = sliceToHorizon(rowsFull);
   const labels = rows.map(r=>r.year);
   if(charts.networth) charts.networth.destroy();
   charts.networth = new Chart(document.getElementById('chart-networth'), {
@@ -1269,6 +1357,7 @@ function renderDashboard(){
   });
 
   renderFireCards(rows);
+  renderLiquidChart();
 }
 
 const FIRE_META = {
@@ -1279,6 +1368,32 @@ const FIRE_META = {
   chubby:{ title:'Chubby FIRE', desc:'Between Traditional and Fat: real comfort and slack in the budget, without a luxury lifestyle.' },
   fat:{ title:'Fat FIRE', desc:'A more comfortable, higher-spending retirement.' }
 };
+
+function renderLiquidChart(){
+  const rows = projectLiquidDrawdown(nwScenario, includeLifestyleCreep);
+  const sliced = sliceToHorizon(rows);
+  const zeroIdx = rows.findIndex(r=>r.liquid<=0.01);
+  if(charts['liquid']) charts['liquid'].destroy();
+  charts['liquid'] = new Chart(document.getElementById('chart-liquid'), {
+    type:'line',
+    data:{ labels: sliced.map(r=>r.year), datasets:[
+      { label:'Liquid assets', data: sliced.map(r=>r.liquid), borderColor:'#3F6B52', backgroundColor:'rgba(63,107,82,0.08)', fill:true, borderWidth:2, pointRadius:0, tension:0.15 }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:(ctx)=>fmt$full(ctx.parsed.y), title:(items)=>MONTH_ABBR[sliced[items[0].dataIndex].month]+' '+items[0].label } }
+      },
+      scales:{
+        x:{ grid:{ display:false }, ticks:{ maxTicksLimit:12 } },
+        y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
+      }
+    }
+  });
+  document.getElementById('creep-rate-display').textContent = (state.assumptions.lifestyleCreepRate*100).toFixed(1)+'%';
+}
 
 function renderFireCards(rowsContinueUnused){
   const rowsByScenario = { stop:project('stop'), continue:project('continue'), increase:project('increase') };
@@ -1306,14 +1421,15 @@ function renderFireCards(rowsContinueUnused){
   });
   Object.keys(FIRE_META).forEach(type=>{
     const data = buildFireSeries(type, rowsByScenario);
+    const sliceLen = dashHorizonYears ? dashHorizonYears*12 : data.years.length;
     if(charts['fc-'+type]) charts['fc-'+type].destroy();
     charts['fc-'+type] = new Chart(document.getElementById('fc-'+type), {
       type:'line',
-      data:{ labels:data.years, datasets:[
-        { label:'Stop', data:data.series.stop, borderColor:'#A2532E', borderWidth:1.5, pointRadius:0, tension:0.1 },
-        { label:'Continue', data:data.series.continue, borderColor:'#3F6B52', borderWidth:1.5, pointRadius:0, tension:0.1 },
-        { label:'Increase', data:data.series.increase, borderColor:'#5A6B95', borderWidth:1.5, pointRadius:0, tension:0.1 },
-        { label:'Target', data:data.targetVals, borderColor:'#8FA894', borderDash:[4,3], borderWidth:1.5, pointRadius:0, tension:0.1 }
+      data:{ labels:data.years.slice(0,sliceLen), datasets:[
+        { label:'Stop', data:data.series.stop.slice(0,sliceLen), borderColor:'#A2532E', borderWidth:1.5, pointRadius:0, tension:0.1 },
+        { label:'Continue', data:data.series.continue.slice(0,sliceLen), borderColor:'#3F6B52', borderWidth:1.5, pointRadius:0, tension:0.1 },
+        { label:'Increase', data:data.series.increase.slice(0,sliceLen), borderColor:'#5A6B95', borderWidth:1.5, pointRadius:0, tension:0.1 },
+        { label:'Target', data:data.targetVals.slice(0,sliceLen), borderColor:'#8FA894', borderDash:[4,3], borderWidth:1.5, pointRadius:0, tension:0.1 }
       ]},
       options:{
         responsive:true, maintainAspectRatio:false,
@@ -1493,12 +1609,13 @@ function renderMonteCarloResults(){
         </table>
       </div>`;
     if(charts['mc']) charts['mc'].destroy();
+    const mcBands = sliceToHorizon(R.bands);
     charts['mc'] = new Chart(document.getElementById('chart-mc'), {
       type:'line',
-      data:{ labels:R.bands.map(b=>b.year), datasets:[
-        { label:'10th percentile', data:R.bands.map(b=>b.p10), borderColor:'transparent', backgroundColor:'transparent', pointRadius:0, fill:false },
-        { label:'90th percentile', data:R.bands.map(b=>b.p90), borderColor:'transparent', backgroundColor:'rgba(63,107,82,0.14)', pointRadius:0, fill:'-1' },
-        { label:'Median outcome', data:R.bands.map(b=>b.p50), borderColor:'#1E3128', borderWidth:2, pointRadius:0, tension:0.15, fill:false }
+      data:{ labels:mcBands.map(b=>b.year), datasets:[
+        { label:'10th percentile', data:mcBands.map(b=>b.p10), borderColor:'transparent', backgroundColor:'transparent', pointRadius:0, fill:false },
+        { label:'90th percentile', data:mcBands.map(b=>b.p90), borderColor:'transparent', backgroundColor:'rgba(63,107,82,0.14)', pointRadius:0, fill:'-1' },
+        { label:'Median outcome', data:mcBands.map(b=>b.p50), borderColor:'#1E3128', borderWidth:2, pointRadius:0, tension:0.15, fill:false }
       ]},
       options:{
         responsive:true, maintainAspectRatio:false,
@@ -1934,7 +2051,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.4.1';
+const APP_VERSION = '1.5.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2062,6 +2179,21 @@ document.getElementById('debt-strategy-pills').addEventListener('click', (e)=>{
   renderDebt();
 });
 document.getElementById('mc-run-btn').addEventListener('click', renderMonteCarloResults);
+document.getElementById('dash-horizon-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill'); if(!pill) return;
+  document.querySelectorAll('#dash-horizon-pills .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  const h = Number(pill.dataset.h);
+  dashHorizonYears = h>0 ? h : null;
+  renderDashboard();
+});
+document.getElementById('creep-toggle-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill'); if(!pill) return;
+  document.querySelectorAll('#creep-toggle-pills .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  includeLifestyleCreep = pill.dataset.creep==='1';
+  renderLiquidChart();
+});
 document.getElementById('debt-add-btn').addEventListener('click', ()=>{
   state.debts.push({ id:'debt'+Date.now(), name:'New debt', balance:0, rate:0.06, minPayment:0, payment:0 });
   saveState();
