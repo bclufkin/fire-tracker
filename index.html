@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Brad and Wes: Path to FIRE</title>
+<title>Brad and Wes: The Full Picture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -310,7 +310,8 @@
 <div id="topbar">
   <div class="brand">
     <span class="brand-name">Brad and Wes</span>
-    <span class="brand-sub">Path to FIRE</span>
+    <span class="brand-sub">The Full Picture</span>
+    <span class="brand-sub" id="app-version" style="opacity:0.6;"></span>
   </div>
   <div class="navlist">
     <div class="navitem active" data-section="dashboard"><span class="dot"></span>Dashboard</div>
@@ -360,11 +361,11 @@
         </div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <div class="pillgroup" id="nw-scenario-pills">
-            <div class="pill active" data-scn="stop" title="Assumes you stop putting new money into investments starting today. Existing assets keep growing from market returns alone.">Stop investing</div>
+            <div class="pill" data-scn="stop" title="Assumes you stop putting new money into investments starting today. Existing assets keep growing from market returns alone.">Stop investing</div>
             <div class="pill" data-scn="continue" title="Assumes you keep investing the same dollar amount per month that you are today, every year, with no increase.">Keep current pace</div>
-            <div class="pill" data-scn="increase" title="Assumes your monthly investing grows every year by the rate set below, similar to how the IRS 401(k) contribution limit tends to rise.">Increase over time</div>
+            <div class="pill active" data-scn="increase" title="Assumes your monthly investing grows every year by the rate set below, similar to how the IRS 401(k) contribution limit tends to rise.">Increase over time</div>
           </div>
-          <div id="increase-rate-box" style="display:none; font-size:12px; color:var(--ink-soft); align-items:center; gap:8px; background:var(--gold-wash); border-radius:99px; padding:5px 12px 5px 10px; flex-wrap:wrap;">
+          <div id="increase-rate-box" style="display:flex; font-size:12px; color:var(--ink-soft); align-items:center; gap:8px; background:var(--gold-wash); border-radius:99px; padding:5px 12px 5px 10px; flex-wrap:wrap;">
             <span style="display:inline-flex; align-items:center; gap:5px;">
               <select id="contrib-mode-select" data-path="contributionMode" style="font-size:12px; padding:4px 6px;">
                 <option value="flat">flat rate</option>
@@ -406,7 +407,7 @@
       <div class="rowbar">
         <div>
           <h3>How reliable is this?</h3>
-          <div class="sub">300 simulated markets with randomized year-to-year returns (not a smooth 7% every year), using whichever contribution path is selected above (<span id="mc-scenario-label">Stop investing</span>). Shows the range of outcomes, not just one line.</div>
+          <div class="sub">300 simulated markets with randomized year-to-year returns (not a smooth 7% every year), using whichever contribution path is selected above (<span id="mc-scenario-label">Increase over time</span>). Shows the range of outcomes, not just one line.</div>
         </div>
         <div style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
           volatility <input type="number" step="1" data-path="assumptions.returnStdev" data-pct="1" style="width:52px;"><span class="unit">%</span>
@@ -587,10 +588,11 @@
         </div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <div class="pillgroup" id="debt-strategy-pills">
-            <div class="pill active" data-strat="avalanche">Avalanche</div>
-            <div class="pill" data-strat="snowball">Snowball</div>
+            <div class="pill active" data-strat="avalanche" title="Extra payments target the highest interest rate first.">Avalanche</div>
+            <div class="pill" data-strat="snowball" title="Extra payments target the smallest balance first.">Snowball</div>
+            <div class="pill" data-strat="minOnly" title="Pay only the required minimum on everything. No extra, no acceleration.">Minimums only</div>
           </div>
-          <div style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+          <div id="debt-extra-wrap" style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
             extra $<input type="number" id="debt-extra-input" data-path="debtExtra" style="width:70px;"> / mo
           </div>
         </div>
@@ -609,7 +611,7 @@
       <div class="tablewrap" style="max-height:none;">
         <table style="table-layout:auto;">
           <thead>
-            <tr><th style="text-align:left;">Debt</th><th>Balance</th><th>Rate</th><th>Monthly payment</th><th>Payoff order</th><th>Payoff date</th><th>Interest paid</th><th></th></tr>
+            <tr><th style="text-align:left;">Debt</th><th>Balance</th><th>Rate</th><th>Min payment</th><th>Actual payment</th><th>Payoff order</th><th>Payoff date</th><th>Interest paid</th><th></th></tr>
           </thead>
           <tbody id="debt-tbody"></tbody>
         </table>
@@ -815,7 +817,7 @@ const state = {
     rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
   },
   assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300 },
-  contributionMode: 'flat',
+  contributionMode: 'incomeDriven',
   expenses: [
     { id:'homeIns', name:'Home insurance', amount:184.50, category:'essential' },
     { id:'autoIns', name:'Auto insurance', amount:270.69, category:'essential' },
@@ -839,10 +841,10 @@ const state = {
   emergencyFund: { targetMonths:6, currentBalance:0 },
   insurance: { life:false, disability:false, umbrella:false },
   debts: [
-    { id:'subaru', name:'Subaru Loan', balance:0, rate:0.06, payment:644.76 },
-    { id:'volvo', name:'Volvo Loan', balance:0, rate:0.06, payment:300.00 },
-    { id:'studentBrad', name:"Student Loan (Brad)", balance:0, rate:0.05, payment:435.13 },
-    { id:'studentWes', name:"Student Loan (Wes)", balance:0, rate:0.05, payment:1723.00 }
+    { id:'subaru', name:'Subaru Loan', balance:0, rate:0.06, minPayment:644.76, payment:644.76 },
+    { id:'volvo', name:'Volvo Loan', balance:0, rate:0.06, minPayment:300.00, payment:300.00 },
+    { id:'studentBrad', name:"Student Loan (Brad)", balance:0, rate:0.05, minPayment:435.13, payment:435.13 },
+    { id:'studentWes', name:"Student Loan (Wes)", balance:0, rate:0.05, minPayment:1723.00, payment:1723.00 }
   ],
   debtStrategy: 'avalanche',
   debtExtra: 0
@@ -854,7 +856,7 @@ function horizonYears(){
   const p = state.assumptions.planToAge;
   return Math.max(p-bradAge0, p-wesAge0, 10);
 }
-let nwScenario = 'stop';
+let nwScenario = 'increase';
 let projScenario = 'stop';
 let projHorizon = 40;
 const charts = {};
@@ -1200,6 +1202,7 @@ function achievechip(label, row){
 /* ===================== DEBT PAYOFF ENGINE ===================== */
 function runDebtPayoff(){
   const strategy = state.debtStrategy;
+  const minOnly = strategy==='minOnly';
   const debts = state.debts.map(d=>({ ...d, remaining: d.balance, paidOffMonth:null, totalInterest:0 }));
   const today = new Date();
   const history = [{ month:0, total: debts.reduce((s,d)=>s+d.remaining,0) }];
@@ -1211,18 +1214,21 @@ function runDebtPayoff(){
       if(d.remaining<=0.01) return;
       const interest = d.remaining*(d.rate/12);
       d.totalInterest += interest;
-      const pay = Math.min(d.payment, d.remaining+interest);
+      const basePay = minOnly ? d.minPayment : d.payment;
+      const pay = Math.min(basePay, d.remaining+interest);
       d.remaining = Math.max(d.remaining + interest - pay, 0);
       if(d.remaining<=0.01) d.paidOffMonth = month;
     });
-    let pool = state.debtExtra + debts.filter(d=>d.remaining<=0.01 && d.paidOffMonth!==null && d.paidOffMonth<month).reduce((s,d)=>s+d.payment,0);
-    const targets = debts.filter(d=>d.remaining>0.01).sort((a,b)=> strategy==='avalanche' ? b.rate-a.rate : a.remaining-b.remaining);
-    for(const d of targets){
-      if(pool<=0) break;
-      const applied = Math.min(pool, d.remaining);
-      d.remaining -= applied;
-      pool -= applied;
-      if(d.remaining<=0.01){ d.remaining=0; d.paidOffMonth=month; }
+    if(!minOnly){
+      let pool = state.debtExtra + debts.filter(d=>d.remaining<=0.01 && d.paidOffMonth!==null && d.paidOffMonth<month).reduce((s,d)=>s+d.payment,0);
+      const targets = debts.filter(d=>d.remaining>0.01).sort((a,b)=> strategy==='avalanche' ? b.rate-a.rate : a.remaining-b.remaining);
+      for(const d of targets){
+        if(pool<=0) break;
+        const applied = Math.min(pool, d.remaining);
+        d.remaining -= applied;
+        pool -= applied;
+        if(d.remaining<=0.01){ d.remaining=0; d.paidOffMonth=month; }
+      }
     }
     history.push({ month, total: debts.reduce((s,d)=>s+d.remaining,0) });
   }
@@ -1459,7 +1465,8 @@ function renderDebt(){
       <td style="text-align:left;"><input type="text" data-path="debts.${idx}.name" style="width:150px; text-align:left; font-weight:600;"></td>
       <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.balance" style="width:90px;"></td>
       <td class="num"><input type="number" step="0.01" data-path="debts.${idx}.rate" data-pct="1" style="width:64px;"><span class="unit">%</span></td>
-      <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.payment" style="width:80px;"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.minPayment" style="width:76px;"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.payment" style="width:76px;"></td>
       <td style="text-align:center;">#${rank}</td>
       <td style="text-align:center;">${payoffLabel}</td>
       <td class="num">${fmt$(d.totalInterest)}</td>
@@ -1673,6 +1680,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
+const APP_VERSION = '1.1.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -1784,12 +1792,13 @@ document.getElementById('debt-strategy-pills').addEventListener('click', (e)=>{
   document.querySelectorAll('#debt-strategy-pills .pill').forEach(p=>p.classList.remove('active'));
   pill.classList.add('active');
   state.debtStrategy = pill.dataset.strat;
+  document.getElementById('debt-extra-wrap').style.display = (state.debtStrategy==='minOnly') ? 'none' : 'flex';
   saveState();
   renderDebt();
 });
 document.getElementById('mc-run-btn').addEventListener('click', renderMonteCarloResults);
 document.getElementById('debt-add-btn').addEventListener('click', ()=>{
-  state.debts.push({ id:'debt'+Date.now(), name:'New debt', balance:0, rate:0.06, payment:0 });
+  state.debts.push({ id:'debt'+Date.now(), name:'New debt', balance:0, rate:0.06, minPayment:0, payment:0 });
   saveState();
   renderDebt();
 });
@@ -1800,6 +1809,7 @@ document.getElementById('expense-add-btn').addEventListener('click', ()=>{
 });
 
 /* ===================== INIT ===================== */
+document.getElementById('app-version').textContent = 'v'+APP_VERSION;
 loadState();
 bindAll();
 updateContribModeUI();
