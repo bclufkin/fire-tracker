@@ -1309,7 +1309,8 @@ function runDebtPayoff(){
   const minOnly = strategy==='minOnly';
   const debts = state.debts.map(d=>({ ...d, remaining: d.balance, paidOffMonth:null, totalInterest:0 }));
   const today = new Date();
-  const history = [{ month:0, total: debts.reduce((s,d)=>s+d.remaining,0) }];
+  const perDebt0 = {}; debts.forEach(d=>perDebt0[d.id]=d.remaining);
+  const history = [{ month:0, total: debts.reduce((s,d)=>s+d.remaining,0), byDebt: perDebt0 }];
   let month = 0;
   const maxMonths = 600;
   while(month < maxMonths && debts.some(d=>d.remaining>0.01)){
@@ -1318,7 +1319,7 @@ function runDebtPayoff(){
       if(d.remaining<=0.01) return;
       const interest = d.remaining*(d.rate/12);
       d.totalInterest += interest;
-      const basePay = minOnly ? d.minPayment : d.payment;
+      const basePay = minOnly ? (d.minPayment!==undefined && d.minPayment!==null ? d.minPayment : d.payment) : d.payment;
       const pay = Math.min(basePay, d.remaining+interest);
       d.remaining = Math.max(d.remaining + interest - pay, 0);
       if(d.remaining<=0.01) d.paidOffMonth = month;
@@ -1334,7 +1335,8 @@ function runDebtPayoff(){
         if(d.remaining<=0.01){ d.remaining=0; d.paidOffMonth=month; }
       }
     }
-    history.push({ month, total: debts.reduce((s,d)=>s+d.remaining,0) });
+    const perDebt = {}; debts.forEach(d=>perDebt[d.id]=d.remaining);
+    history.push({ month, total: debts.reduce((s,d)=>s+d.remaining,0), byDebt: perDebt });
   }
   const totalToday = state.debts.reduce((s,d)=>s+d.balance,0);
   const totalInterest = debts.reduce((s,d)=>s+d.totalInterest,0);
@@ -1558,15 +1560,26 @@ function renderDebt(){
   ].map(([label,value,hl])=>`<div class="stat"><div class="label">${label}</div><div class="value ${hl?'teal':''} num">${value}</div></div>`).join('');
 
   if(charts['debt']) charts['debt'].destroy();
-  const labels = R.history.filter((h,i)=> i%Math.max(1,Math.floor(R.history.length/60))===0 || i===R.history.length-1).map(h=>h.month);
-  const data = R.history.filter((h,i)=> i%Math.max(1,Math.floor(R.history.length/60))===0 || i===R.history.length-1).map(h=>h.total);
+  const sampleEvery = Math.max(1,Math.floor(R.history.length/60));
+  const sampled = R.history.filter((h,i)=> i%sampleEvery===0 || i===R.history.length-1);
+  const labels = sampled.map(h=>h.month);
+  const palette = ['#A2532E','#3F6B52','#5A6B95','#B8935A','#8FA894','#1E3128'];
+  const debtDatasets = state.debts.map((sd,idx)=>({
+    label: sd.name,
+    data: sampled.map(h=>h.byDebt[sd.id]||0),
+    borderColor: palette[idx%palette.length],
+    backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.15
+  }));
   charts['debt'] = new Chart(document.getElementById('chart-debt'), {
     type:'line',
-    data:{ labels, datasets:[{ label:'Total balance', data, borderColor:'#A2532E', backgroundColor:'rgba(162,83,46,0.08)', fill:true, borderWidth:2, pointRadius:0, tension:0.15 }] },
+    data:{ labels, datasets: debtDatasets },
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
-      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=>fmt$full(ctx.parsed.y), title:(items)=>'Month '+items[0].label } } },
+      plugins:{
+        legend:{ position:'top', align:'end', labels:{ boxWidth:10, boxHeight:10, font:{size:11} } },
+        tooltip:{ callbacks:{ label:(ctx)=>ctx.dataset.label+': '+fmt$full(ctx.parsed.y), title:(items)=>'Month '+items[0].label } }
+      },
       scales:{
         x:{ title:{ display:true, text:'Months from now' }, grid:{ display:false } },
         y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
@@ -1891,7 +1904,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -1925,6 +1938,7 @@ function loadState(){
       saveState();
     }
   }catch(e){}
+  state.debts.forEach(d=>{ if(d.minPayment===undefined || d.minPayment===null) d.minPayment = d.payment; });
 }
 
 function bindOne(el){
