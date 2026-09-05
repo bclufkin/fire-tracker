@@ -55,7 +55,7 @@
     --font-body:'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0; max-width:100%; overflow-x:hidden;}
   body{
     background:var(--bg);
     color:var(--ink);
@@ -303,10 +303,33 @@
   .dash{ width:14px; height:0; border-top:2px dashed #9AA2AF; display:inline-block; }
 
   @media (max-width:900px){
-    #topbar{ flex-wrap:wrap; height:auto; padding:12px 18px; gap:10px 16px; }
-    #disclaimer{ padding:8px 18px; }
-    #main{ padding:22px 18px 50px; }
-    .stats{ grid-template-columns:repeat(2,1fr); }
+    #topbar{ flex-wrap:nowrap; height:auto; padding:10px 14px; gap:10px; align-items:center; }
+    #topbar .brand{ flex:0 0 auto; }
+    #topbar .brand-sub{ display:none; }
+    .navlist{
+      flex:1 1 auto; overflow-x:auto; flex-wrap:nowrap; gap:2px;
+      -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none;
+    }
+    .navlist::-webkit-scrollbar{ display:none; }
+    .navitem{ flex:0 0 auto; padding:7px 10px; font-size:12.5px; }
+    #disclaimer{ padding:7px 14px; font-size:11px; }
+    #main{ padding:18px 14px 40px; }
+    .stats{ grid-template-columns:repeat(2,1fr); gap:10px; }
+    .card{ padding:14px 14px; }
+    .formgrid{ grid-template-columns:1fr; }
+    .firegrid{ grid-template-columns:1fr; }
+    h1{ font-size:21px; }
+    .rowbar{ flex-direction:column; align-items:flex-start; gap:10px; }
+    .rowbar > div:last-child{ width:100%; }
+    .pillgroup{ flex-wrap:wrap; }
+    .personblock{ margin-left:0; margin-right:0; }
+    .tablewrap table{ font-size:11.5px; }
+    .acct-table{ font-size:10.5px; }
+    .acct-table th:first-child, .acct-table td:first-child{ width:24%; }
+    .acct-table th:nth-child(2), .acct-table td:nth-child(2){ width:26%; }
+  }
+  @media (max-width:480px){
+    .stats{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -632,9 +655,15 @@
           <div class="pill" data-strat="minOnly" title="Pay only the required minimum on everything. No extra, no acceleration.">Minimums only</div>
         </div>
       </div>
-      <div style="min-height:34px; margin-bottom:6px;">
+      <div style="min-height:34px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div id="debt-extra-wrap" style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px; width:fit-content;">
           extra $<input type="number" id="debt-extra-input" data-path="debtExtra" style="width:70px;"> / mo
+        </div>
+        <div class="pillgroup" id="debt-horizon-pills">
+          <div class="pill" data-h="1">1 yr</div>
+          <div class="pill" data-h="3">3 yrs</div>
+          <div class="pill" data-h="5">5 yrs</div>
+          <div class="pill active" data-h="0">Full</div>
         </div>
       </div>
       <div class="chartwrap" style="height:260px;"><canvas id="chart-debt"></canvas></div>
@@ -742,6 +771,12 @@
         <div>
           <h3>Actual vs. projected</h3>
           <div class="sub" style="margin-bottom:0;">Your logged snapshots (dots) against the "keep current pace" projection (line) for the same dates.</div>
+        </div>
+        <div class="pillgroup" id="history-horizon-pills">
+          <div class="pill" data-h="5">5 yrs</div>
+          <div class="pill" data-h="10">10 yrs</div>
+          <div class="pill" data-h="20">20 yrs</div>
+          <div class="pill active" data-h="0">Full</div>
         </div>
       </div>
       <div class="chartwrap" style="height:280px;"><canvas id="chart-history"></canvas></div>
@@ -1017,6 +1052,8 @@ let nwScenario = 'increase';
 let projScenario = 'stop';
 let projHorizon = 40;
 let dashHorizonYears = null;
+let debtHorizonYears = null;
+let historyHorizonYears = null;
 let includeLifestyleCreep = false;
 const charts = {};
 
@@ -1707,8 +1744,9 @@ function renderDebt(){
   ].map(([label,value,hl])=>`<div class="stat"><div class="label">${label}</div><div class="value ${hl?'teal':''} num">${value}</div></div>`).join('');
 
   if(charts['debt']) charts['debt'].destroy();
-  const sampleEvery = Math.max(1,Math.floor(R.history.length/60));
-  const sampled = R.history.filter((h,i)=> i%sampleEvery===0 || i===R.history.length-1);
+  const debtHistClipped = debtHorizonYears ? R.history.slice(0, debtHorizonYears*12+1) : R.history;
+  const sampleEvery = Math.max(1,Math.floor(debtHistClipped.length/60));
+  const sampled = debtHistClipped.filter((h,i)=> i%sampleEvery===0 || i===debtHistClipped.length-1);
   const labels = sampled.map(h=>h.month);
   const palette = ['#A2532E','#3F6B52','#5A6B95','#B8935A','#8FA894','#1E3128'];
   const debtDatasets = state.debts.map((sd,idx)=>({
@@ -1862,12 +1900,13 @@ function renderHistory(){
     ['As of', latest ? new Date(latest.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) : 'n/a']
   ].map(([label,value])=>`<div class="stat"><div class="label">${label}</div><div class="value num">${value}</div></div>`).join('');
 
-  const rows = project('continue');
+  const rowsFull = project('continue');
+  const rows = historyHorizonYears ? rowsFull.slice(0, historyHorizonYears*12) : rowsFull;
   const projPoints = rows.filter(r=>r.i%3===0).map(r=>({ x: r.year+r.month/12, y: r.jointNW }));
   const actualPoints = snaps.map(s=>{
     const d = new Date(s.date+'T00:00:00');
     return { x: d.getFullYear()+d.getMonth()/12, y: totalOf(s) };
-  });
+  }).filter(p=> !historyHorizonYears || p.x <= (rows.length ? rows[rows.length-1].year+rows[rows.length-1].month/12 : Infinity));
 
   if(charts['history']) charts['history'].destroy();
   charts['history'] = new Chart(document.getElementById('chart-history'), {
@@ -2051,7 +2090,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.6.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2193,6 +2232,22 @@ document.getElementById('creep-toggle-pills').addEventListener('click', (e)=>{
   pill.classList.add('active');
   includeLifestyleCreep = pill.dataset.creep==='1';
   renderLiquidChart();
+});
+document.getElementById('debt-horizon-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill'); if(!pill) return;
+  document.querySelectorAll('#debt-horizon-pills .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  const h = Number(pill.dataset.h);
+  debtHorizonYears = h>0 ? h : null;
+  renderDebt();
+});
+document.getElementById('history-horizon-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill'); if(!pill) return;
+  document.querySelectorAll('#history-horizon-pills .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  const h = Number(pill.dataset.h);
+  historyHorizonYears = h>0 ? h : null;
+  renderHistory();
 });
 document.getElementById('debt-add-btn').addEventListener('click', ()=>{
   state.debts.push({ id:'debt'+Date.now(), name:'New debt', balance:0, rate:0.06, minPayment:0, payment:0 });
