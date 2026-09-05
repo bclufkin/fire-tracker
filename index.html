@@ -351,8 +351,17 @@
             <div class="pill" data-scn="continue" title="Assumes you keep investing the same dollar amount per month that you are today, every year, with no increase.">Keep current pace</div>
             <div class="pill" data-scn="increase" title="Assumes your monthly investing grows every year by the rate set below, similar to how the IRS 401(k) contribution limit tends to rise.">Increase over time</div>
           </div>
-          <div id="increase-rate-box" style="display:none; font-size:12px; color:var(--ink-soft); align-items:center; gap:5px; background:var(--gold-wash); border-radius:99px; padding:5px 12px 5px 10px;">
-            by <input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1" style="width:52px;">% / yr
+          <div id="increase-rate-box" style="display:none; font-size:12px; color:var(--ink-soft); align-items:center; gap:8px; background:var(--gold-wash); border-radius:99px; padding:5px 12px 5px 10px; flex-wrap:wrap;">
+            <span style="display:inline-flex; align-items:center; gap:5px;">
+              <select id="contrib-mode-select" data-path="contributionMode" style="font-size:12px; padding:4px 6px;">
+                <option value="flat">flat rate</option>
+                <option value="incomeDriven">income-driven</option>
+              </select>
+            </span>
+            <span id="flat-rate-wrap" style="display:inline-flex; align-items:center; gap:5px;">
+              by <input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1" style="width:52px;">% / yr
+            </span>
+            <span id="income-driven-note" style="display:none; font-size:11.5px;">extra savings from income outgrowing spending, capped 401(k)/HSA room spills to brokerage</span>
           </div>
         </div>
       </div>
@@ -475,6 +484,8 @@
           <tr><td>Income growth rate</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.incomeGrowth" data-pct="1">%</td></tr>
           <tr><td>Contribution increase rate<span class="hint">used by the "increase" scenario</span></td><td class="pval"><input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1">%</td></tr>
           <tr><td>Plan to age<span class="hint">sets how far out every projection runs</span></td><td class="pval"><input type="number" data-path="assumptions.planToAge"></td></tr>
+          <tr><td>401(k) annual cap<span class="hint">per person, used by "income-driven" contribution growth</span></td><td class="pval">$<input type="number" data-path="assumptions.cap401k"></td></tr>
+          <tr><td>HSA annual cap<span class="hint">per person</span></td><td class="pval">$<input type="number" data-path="assumptions.capHSA"></td></tr>
         </tbody></table>
         <div class="assumptext">
           Investment return 7% and inflation 3% are common long-run planning defaults for a diversified stock and bond portfolio. Home appreciation 3.5% tracks the long-run US average. Mortgage rate defaults to 6.5%, a recent-vintage rate: replace it with your actual rate. The 3% contribution increase approximates how the IRS 401(k) contribution cap has typically crept up.
@@ -491,6 +502,9 @@
           <tr><td>Fat FIRE<span class="hint">a more comfortable lifestyle</span></td><td class="pval">$<input type="number" data-path="fire.fat"></td></tr>
           <tr><td>Barista part-time income<span class="hint">offsets Traditional's spending target</span></td><td class="pval">$<input type="number" data-path="fire.baristaIncome"></td></tr>
         </tbody></table>
+        <div class="assumptext" style="margin-top:12px;">
+          Your current itemized spending on the Budget tab (essential + discretionary, plus mortgage) comes to <b id="fire-target-reference">n/a</b>/yr today. The targets above are what you expect to spend in retirement, which can reasonably differ. They're not auto-synced to your current budget on purpose.
+        </div>
       </div>
 
       <div class="card">
@@ -618,6 +632,22 @@
     <div class="stats" id="budget-stats"></div>
 
     <div class="card">
+      <div class="rowbar">
+        <div>
+          <h3>Living expenses</h3>
+          <div class="sub" style="margin-bottom:0;">The real, itemized bills driving your essential and discretionary spending everywhere in this tool: FIRE targets, the cash flow below, and income-driven contribution growth. Mortgage P&amp;I and escrow are pulled in automatically from Real Estate; debt payments from the Debt tab.</div>
+        </div>
+        <button id="expense-add-btn" class="btn">+ Add expense</button>
+      </div>
+      <div class="tablewrap" style="max-height:none;">
+        <table style="table-layout:auto;">
+          <thead><tr><th style="text-align:left;">Expense</th><th>Monthly</th><th>Category</th><th></th></tr></thead>
+          <tbody id="expense-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
       <h3>Monthly cash flow</h3>
       <div class="sub">Income on the left, where it lands on the right. Band thickness is proportional to dollars.</div>
       <div id="sankey-wrap" style="width:100%; overflow-x:auto;"></div>
@@ -695,8 +725,14 @@
       <div class="sub" style="margin-bottom:0;">
         <b>Stop investing:</b> contributions are set to zero starting today; assets grow from market returns alone.<br>
         <b>Keep current pace:</b> each of you keeps contributing your current monthly amount, flat, every year, until you retire.<br>
-        <b>Increase over time:</b> your monthly contribution grows every year by the rate you set (default 3%, loosely tracking how the IRS 401(k) limit tends to rise).<br>
-        All three use the same investment return assumption. They differ only in the contribution schedule.
+        <b>Increase over time:</b> your monthly contribution grows, using one of two modes you choose next to the pill:
+      </div>
+      <div class="sub" style="margin-bottom:0; margin-top:8px; padding-left:14px;">
+        <b>Flat rate</b> grows your current contribution by a fixed percentage every year (default 3%, loosely tracking how the IRS 401(k) limit tends to rise).<br>
+        <b>Income-driven</b> instead computes it directly: each year, your household income grows at the income growth rate while your living expenses (from the Budget tab's itemized list, plus mortgage) grow at inflation. Whenever income outgrows expenses, that gap is new disposable money, split between you in proportion to today's income, and added on top of your baseline contribution. It never goes negative if expenses happen to outgrow income; it just adds nothing that year. This extra money is assumed to fill any remaining room under your 401(k) and HSA annual caps first, then spill into brokerage once those are maxed, since brokerage has no contribution limit.
+      </div>
+      <div class="sub" style="margin-bottom:0; margin-top:8px;">
+        All contribution schedules use the same investment return assumption; they differ only in how much gets contributed.
       </div>
     </div>
 
@@ -745,7 +781,7 @@
     <div class="card" style="margin-top:16px;">
       <h3>Budget and cash flow</h3>
       <div class="sub" style="margin-bottom:0;">
-        Built from figures already elsewhere in the tool rather than a separate line-item budget. Income is your two salaries (annual &divide; 12) plus monthly rental income. Taxes are estimated as a flat percentage of gross income (editable, default 25%), not a real bracket calculation. "Essential living" is your Lean FIRE annual target &divide; 12; "discretionary" is the gap between Traditional and Lean, divided by 12. Debt payments sum the monthly payments on the Debt tab. Investing is your combined current monthly contributions. Rental costs are the rental mortgage payment plus its other monthly expenses. Whatever's left (or missing) after all of that is shown as surplus or shortfall.
+        Built around a real itemized expense list (add, edit, or remove any line) rather than a rough estimate. "Essential living" sums every expense tagged essential, plus the primary mortgage's P&amp;I and escrow pulled in automatically from Real Estate. "Discretionary" sums everything tagged discretionary. Income is your two salaries (annual &divide; 12) plus monthly rental income. Taxes are estimated as a flat combined federal-plus-state percentage of gross income (editable), not a real bracket calculation. Debt payments sum the monthly payments on the Debt tab. Investing is your combined current monthly contributions, including employer match. Rental costs are the rental property's P&amp;I, escrow, and other monthly expenses. Whatever's left (or missing) after all of that is shown as surplus or shortfall. This same itemized total is what "income-driven" contribution growth (see above) uses as the spending baseline that grows with inflation.
       </div>
     </div>
 
@@ -775,7 +811,24 @@ const state = {
     primary: { purchasePrice:0, value:0, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
     rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
   },
-  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95 },
+  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capHSA:4300 },
+  contributionMode: 'flat',
+  expenses: [
+    { id:'homeIns', name:'Home insurance', amount:184.50, category:'essential' },
+    { id:'autoIns', name:'Auto insurance', amount:270.69, category:'essential' },
+    { id:'parking', name:'Work parking', amount:50, category:'essential' },
+    { id:'gas', name:'Vehicle gas', amount:70, category:'essential' },
+    { id:'healthPrem', name:'Health premiums', amount:135.52, category:'essential' },
+    { id:'internet', name:'Internet', amount:30, category:'essential' },
+    { id:'utilGas', name:'Gas (utility)', amount:131.65, category:'essential' },
+    { id:'energy', name:'Energy', amount:234.98, category:'essential' },
+    { id:'water', name:'Water', amount:107.11, category:'essential' },
+    { id:'pest', name:'Pest control', amount:28.33, category:'essential' },
+    { id:'cell', name:'Cell phone', amount:45, category:'essential' },
+    { id:'newton', name:'Newton (pet)', amount:300, category:'essential' },
+    { id:'roof', name:'Roof fund', amount:1733.33, category:'essential' },
+    { id:'entertainment', name:'Entertainment', amount:363.65, category:'discretionary' }
+  ],
   fire: { lean:109500, traditional:114000, chubby:142500, fat:171000, baristaIncome:0 },
   futureIncome: { pensionWes:0, pensionStartAge:62, ssBrad:0, ssWes:0, ssStartAge:67 },
   tax: { effectiveTaxRate:0.15, incomeTaxRate:0.25, filingStatus:'mfj', stateOfResidence:'VA', stateTaxRate:0.0575 },
@@ -822,6 +875,35 @@ function computedTraditionalFraction(){
   const tradTotal = state.brad.accounts.traditional.balance + state.wes.accounts.traditional.balance;
   const total = personAssets('brad') + personAssets('wes');
   return total>0 ? tradTotal/total : 0;
+}
+function itemizedMonthly(category){
+  return state.expenses.filter(e=>e.category===category).reduce((s,e)=>s+e.amount,0);
+}
+function essentialMonthlyTotal(){
+  return itemizedMonthly('essential') + state.realEstate.primary.piPayment + state.realEstate.primary.escrow;
+}
+function discretionaryMonthlyTotal(){
+  return itemizedMonthly('discretionary');
+}
+function livingSpendingAnnualToday(){
+  return (essentialMonthlyTotal()+discretionaryMonthlyTotal())*12;
+}
+function personIncome0(who){ return state[who].income; }
+function incomeDrivenExtraAnnual(who, yearOffset){
+  const A = state.assumptions;
+  const income0 = state.brad.income+state.wes.income;
+  const incomeY = income0*Math.pow(1+A.incomeGrowth, yearOffset);
+  const spend0 = livingSpendingAnnualToday();
+  const spendY = spend0*Math.pow(1+A.inflation, yearOffset);
+  const extraTotal = Math.max((incomeY-income0)-(spendY-spend0), 0);
+  const share = income0>0 ? personIncome0(who)/income0 : 0.5;
+  return extraTotal*share;
+}
+function capRoomAnnual(who){
+  const a = state[who].accounts;
+  const room401k = Math.max(state.assumptions.cap401k - (a.traditional.monthly+a.roth.monthly)*12, 0);
+  const roomHSA = Math.max(state.assumptions.capHSA - a.hsa.monthly*12, 0);
+  return { room401k, roomHSA };
 }
 function ageFromDob(dobStr, today){
   const dob = new Date(dobStr+'T00:00:00');
@@ -883,11 +965,19 @@ function project(scenarioKey){
       let bradContrib=0, wesContrib=0;
       if(bradAge < S.brad.retireAge){
         if(scenarioKey==='continue') bradContrib = personContrib('brad')*12;
-        else if(scenarioKey==='increase') bradContrib = personContrib('brad')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+        else if(scenarioKey==='increase'){
+          bradContrib = S.contributionMode==='incomeDriven'
+            ? personContrib('brad')*12 + incomeDrivenExtraAnnual('brad', i)
+            : personContrib('brad')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+        }
       }
       if(wesAge < S.wes.retireAge){
         if(scenarioKey==='continue') wesContrib = personContrib('wes')*12;
-        else if(scenarioKey==='increase') wesContrib = personContrib('wes')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+        else if(scenarioKey==='increase'){
+          wesContrib = S.contributionMode==='incomeDriven'
+            ? personContrib('wes')*12 + incomeDrivenExtraAnnual('wes', i)
+            : personContrib('wes')*12*Math.pow(1+S.assumptions.contributionGrowth,i);
+        }
       }
       bradAssets = bradAssets*(1+S.assumptions.investmentReturn) + bradContrib;
       wesAssets = wesAssets*(1+S.assumptions.investmentReturn) + wesContrib;
@@ -1376,12 +1466,38 @@ function renderDebt(){
 }
 
 /* ===================== RENDER: BUDGET ===================== */
+function renderExpenseTable(){
+  document.getElementById('expense-tbody').innerHTML = state.expenses.map(exp=>{
+    const idx = state.expenses.indexOf(exp);
+    return `<tr>
+      <td style="text-align:left;"><input type="text" data-path="expenses.${idx}.name" style="width:170px; text-align:left; font-weight:600;"></td>
+      <td class="num">$<input type="number" data-path="expenses.${idx}.amount" style="width:90px;"></td>
+      <td style="text-align:center;">
+        <select data-path="expenses.${idx}.category">
+          <option value="essential">Essential</option>
+          <option value="discretionary">Discretionary</option>
+        </select>
+      </td>
+      <td style="text-align:center;"><span class="debt-remove expense-remove" data-id="${exp.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#expense-tbody [data-path]').forEach(bindOne);
+  document.querySelectorAll('.expense-remove').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.expenses = state.expenses.filter(x=>x.id!==el.dataset.id);
+      saveState();
+      renderBudget();
+    });
+  });
+}
+
 function renderBudget(){
+  renderExpenseTable();
   const bradM = state.brad.income/12, wesM = state.wes.income/12, rentM = state.realEstate.rental.rentIncome;
   const incomeTotal = bradM+wesM+rentM;
   const taxes = incomeTotal*(state.tax.incomeTaxRate+state.tax.stateTaxRate);
-  const essential = state.fire.lean/12;
-  const discretionary = Math.max(state.fire.traditional-state.fire.lean,0)/12;
+  const essential = essentialMonthlyTotal();
+  const discretionary = discretionaryMonthlyTotal();
   const debtPay = state.debts.reduce((s,d)=>s+d.payment,0);
   const investing = personContrib('brad')+personContrib('wes');
   const rentalCosts = state.realEstate.rental.piPayment+state.realEstate.rental.escrow+state.realEstate.rental.expenses;
@@ -1453,6 +1569,7 @@ function renderInputsLive(){
   document.getElementById('wes-assets-total').textContent = fmt$full(personAssets('wes'));
   document.getElementById('wes-contrib-total').textContent = fmt$full(personContrib('wes'))+'/mo';
   document.getElementById('tax-trad-fraction').textContent = (computedTraditionalFraction()*100).toFixed(0)+'%';
+  document.getElementById('fire-target-reference').textContent = fmt$full(livingSpendingAnnualToday());
 
   const bradA = state.brad.accounts, wesA = state.wes.accounts;
   const bradUnsplit = bradA.roth.balance===0 && bradA.hsa.balance===0 && bradA.brokerage.balance===0 && bradA.traditional.balance>0;
@@ -1562,6 +1679,12 @@ document.getElementById('nw-scenario-pills').addEventListener('click', (e)=>{
   document.getElementById('increase-rate-box').style.display = (nwScenario==='increase') ? 'flex' : 'none';
   renderDashboard();
 });
+function updateContribModeUI(){
+  const mode = state.contributionMode;
+  document.getElementById('flat-rate-wrap').style.display = mode==='flat' ? 'inline-flex' : 'none';
+  document.getElementById('income-driven-note').style.display = mode==='incomeDriven' ? 'inline' : 'none';
+}
+document.getElementById('contrib-mode-select').addEventListener('change', updateContribModeUI);
 document.getElementById('proj-scenario-pills').addEventListener('click', (e)=>{
   const pill = e.target.closest('.pill'); if(!pill) return;
   document.querySelectorAll('#proj-scenario-pills .pill').forEach(p=>p.classList.remove('active'));
@@ -1590,10 +1713,16 @@ document.getElementById('debt-add-btn').addEventListener('click', ()=>{
   saveState();
   renderDebt();
 });
+document.getElementById('expense-add-btn').addEventListener('click', ()=>{
+  state.expenses.push({ id:'exp'+Date.now(), name:'New expense', amount:0, category:'essential' });
+  saveState();
+  renderBudget();
+});
 
 /* ===================== INIT ===================== */
 loadState();
 bindAll();
+updateContribModeUI();
 renderInputsLive();
 renderDashboard();
 document.getElementById('reset-inputs-link').addEventListener('click', (e)=>{
