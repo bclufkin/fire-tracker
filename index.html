@@ -196,7 +196,7 @@
 
   /* Inputs page */
   .formgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:18px; }
-  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:7px 12px; border-radius:8px; margin:0 -12px; }
+  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:5px 12px; border-radius:8px; margin:0 -12px; }
   .fieldrow:hover{ background:var(--bg); }
   .fieldrow label{ font-size:13px; color:var(--ink-soft); flex:1.3; }
   .fieldrow .hint{ display:block; font-size:11px; color:var(--ink-faint); margin-top:1px; }
@@ -215,8 +215,10 @@
   select{
     border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px;
     background:var(--paper); color:var(--ink); font-family:var(--font-body); cursor:pointer;
+    max-width:100%; box-sizing:border-box;
   }
   select:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-wash); }
+  .param-table select{ width:150px; }
   input:hover{ border-color:var(--ink-faint); }
   input:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-wash); }
   input.placeholder-empty{ border-color:var(--rust); background:var(--rust-wash); }
@@ -239,11 +241,12 @@
   .param-table tr{ border-bottom:1px solid var(--line-soft); }
   .param-table tr:last-child{ border-bottom:none; }
   .param-table tr:hover{ background:var(--bg); }
-  .param-table td{ padding:8px 4px; font-size:13px; color:var(--ink-soft); vertical-align:middle; }
-  .param-table td:first-child{ width:68%; }
+  .param-table td{ padding:5px 4px; font-size:13px; color:var(--ink-soft); vertical-align:middle; }
+  .param-table td:first-child{ width:66%; }
   .param-table td.pval{ text-align:right; white-space:nowrap; }
   .param-table .hint{ display:block; font-size:11px; color:var(--ink-faint); margin-top:1px; }
-  .param-table input{ width:84px; }
+  .param-table input{ width:92px; }
+  .unit{ display:inline-block; color:var(--ink-faint); font-size:12.5px; width:13px; text-align:center; vertical-align:middle; }
   input.placeholder-guess{ background:var(--gold-wash); border-color:var(--gold); }
   #section-methodology .sub{ font-size:13px; line-height:1.55; }
   #section-methodology code{
@@ -359,7 +362,7 @@
               </select>
             </span>
             <span id="flat-rate-wrap" style="display:inline-flex; align-items:center; gap:5px;">
-              by <input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1" style="width:52px;">% / yr
+              by <input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1" style="width:52px;"><span class="unit">%</span> / yr
             </span>
             <span id="income-driven-note" style="display:none; font-size:11.5px;">extra savings from income outgrowing spending, capped 401(k)/HSA room spills to brokerage</span>
           </div>
@@ -393,10 +396,10 @@
       <div class="rowbar">
         <div>
           <h3>How reliable is this?</h3>
-          <div class="sub">300 simulated markets with randomized year-to-year returns (not a smooth 7% every year), using your "keep current pace" contributions. Shows the range of outcomes, not just one line.</div>
+          <div class="sub">300 simulated markets with randomized year-to-year returns (not a smooth 7% every year), using whichever contribution path is selected above (<span id="mc-scenario-label">Stop investing</span>). Shows the range of outcomes, not just one line.</div>
         </div>
         <div style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
-          volatility <input type="number" step="1" data-path="assumptions.returnStdev" data-pct="1" style="width:52px;">%
+          volatility <input type="number" step="1" data-path="assumptions.returnStdev" data-pct="1" style="width:52px;"><span class="unit">%</span>
           <button id="mc-run-btn" class="btn" style="margin-left:8px;">Run simulation</button>
         </div>
       </div>
@@ -421,55 +424,59 @@
         <div class="personhead">Brad</div>
         <div class="fieldrow"><label>Birthday<span class="hint" id="brad-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="brad.dob"></div></div>
         <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="brad.retireAge"></div></div>
-        <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap">$<input type="number" data-path="brad.income"></div></div>
-        <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap">$<input type="number" data-path="brad.employerMatch"></div></div>
+        <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.income"></div></div>
+        <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.employerMatch"></div></div>
         <table class="acct-table">
           <thead><tr><th style="text-align:left;">Brad's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
           <tbody>
-            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="brad.accounts.traditional.balance" id="brad-trad-balance"></td><td>$<input type="number" data-path="brad.accounts.traditional.monthly"></td></tr>
-            <tr><td>Roth 401(k)/IRA</td><td>$<input type="number" data-path="brad.accounts.roth.balance"></td><td>$<input type="number" data-path="brad.accounts.roth.monthly"></td></tr>
-            <tr><td>HSA</td><td>$<input type="number" data-path="brad.accounts.hsa.balance"></td><td>$<input type="number" data-path="brad.accounts.hsa.monthly"></td></tr>
-            <tr><td>Brokerage</td><td>$<input type="number" data-path="brad.accounts.brokerage.balance"></td><td>$<input type="number" data-path="brad.accounts.brokerage.monthly"></td></tr>
+            <tr><td>Traditional 401(k)</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.traditional.balance" id="brad-trad-balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.traditional.monthly"></td></tr>
+            <tr><td>Roth 401(k)</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.roth401k.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.roth401k.monthly"></td></tr>
+            <tr><td>Roth IRA</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.rothIRA.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.rothIRA.monthly"></td></tr>
+            <tr><td>HSA</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.hsa.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.hsa.monthly"></td></tr>
+            <tr><td>Brokerage</td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.brokerage.balance"></td><td><span class="unit">$</span><input type="number" data-path="brad.accounts.brokerage.monthly"></td></tr>
             <tr class="acct-total"><td>Total</td><td class="num" id="brad-assets-total">n/a</td><td class="num" id="brad-contrib-total">n/a</td></tr>
           </tbody>
         </table>
+        <div class="hint" id="brad-cap-room" style="margin-top:-6px; margin-bottom:10px;">n/a</div>
         <div class="personhead wes">Wes</div>
         <div class="fieldrow"><label>Birthday<span class="hint" id="wes-age-hint"></span></label><div class="inputwrap"><input type="date" data-path="wes.dob"></div></div>
         <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="wes.retireAge"></div></div>
-        <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap">$<input type="number" data-path="wes.income"></div></div>
-        <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap">$<input type="number" data-path="wes.employerMatch"></div></div>
+        <div class="fieldrow"><label>Annual gross income</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.income"></div></div>
+        <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.employerMatch"></div></div>
         <table class="acct-table">
           <thead><tr><th style="text-align:left;">Wes's accounts</th><th>Balance</th><th>Monthly</th></tr></thead>
           <tbody>
-            <tr><td>Traditional 401(k)/IRA</td><td>$<input type="number" data-path="wes.accounts.traditional.balance" id="wes-trad-balance"></td><td>$<input type="number" data-path="wes.accounts.traditional.monthly"></td></tr>
-            <tr><td>Roth 401(k)/IRA</td><td>$<input type="number" data-path="wes.accounts.roth.balance"></td><td>$<input type="number" data-path="wes.accounts.roth.monthly"></td></tr>
-            <tr><td>HSA</td><td>$<input type="number" data-path="wes.accounts.hsa.balance"></td><td>$<input type="number" data-path="wes.accounts.hsa.monthly"></td></tr>
-            <tr><td>Brokerage</td><td>$<input type="number" data-path="wes.accounts.brokerage.balance"></td><td>$<input type="number" data-path="wes.accounts.brokerage.monthly"></td></tr>
+            <tr><td>Traditional 401(k)</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.traditional.balance" id="wes-trad-balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.traditional.monthly"></td></tr>
+            <tr><td>Roth 401(k)</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.roth401k.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.roth401k.monthly"></td></tr>
+            <tr><td>Roth IRA</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.rothIRA.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.rothIRA.monthly"></td></tr>
+            <tr><td>HSA</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.hsa.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.hsa.monthly"></td></tr>
+            <tr><td>Brokerage</td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.brokerage.balance"></td><td><span class="unit">$</span><input type="number" data-path="wes.accounts.brokerage.monthly"></td></tr>
             <tr class="acct-total"><td>Total</td><td class="num" id="wes-assets-total">n/a</td><td class="num" id="wes-contrib-total">n/a</td></tr>
           </tbody>
         </table>
+        <div class="hint" id="wes-cap-room" style="margin-top:-6px; margin-bottom:10px;">n/a</div>
       </div>
 
       <div class="card">
         <h3>Real estate</h3>
         <div class="sub">Values are placeholders. Mortgage figures for the primary home are filled in from your September statement.</div>
         <div class="personhead">6225 Cheryl Drive &middot; primary, owned jointly</div>
-        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.purchasePrice"></div></div>
-        <div class="fieldrow"><label>Current home value</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.value" id="in-primary-value"></div></div>
-        <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.balance" id="in-primary-balance"></div></div>
-        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.primary.rate" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.piPayment"></div></div>
-        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.primary.escrow"></div></div>
+        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.purchasePrice"></div></div>
+        <div class="fieldrow"><label>Current home value</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.value" id="in-primary-value"></div></div>
+        <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.balance" id="in-primary-balance"></div></div>
+        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.primary.rate" data-pct="1"><span class="unit">%</span></div></div>
+        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.piPayment"></div></div>
+        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.escrow"></div></div>
         <div class="fieldrow"><label>Total monthly payment</label><div class="inputwrap"><span id="primary-total-payment" style="font-weight:600;">n/a</span></div></div>
         <div class="personhead wes">4016 Georgia Ave Unit 1 &middot; rental, Wes's</div>
-        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.purchasePrice"></div></div>
-        <div class="fieldrow"><label>Current property value</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.value" id="in-rental-value"></div></div>
-        <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.balance" id="in-rental-balance"></div></div>
-        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.rental.rate" data-pct="1">%</div></div>
-        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.piPayment"></div></div>
-        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.escrow"></div></div>
-        <div class="fieldrow"><label>Monthly rent collected</label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.rentIncome"></div></div>
-        <div class="fieldrow"><label>Monthly expenses<span class="hint">HOA, insurance, property tax, on top of escrow</span></label><div class="inputwrap">$<input type="number" data-path="realEstate.rental.expenses"></div></div>
+        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.purchasePrice"></div></div>
+        <div class="fieldrow"><label>Current property value</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.value" id="in-rental-value"></div></div>
+        <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.balance" id="in-rental-balance"></div></div>
+        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.rental.rate" data-pct="1"><span class="unit">%</span></div></div>
+        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.piPayment"></div></div>
+        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.escrow"></div></div>
+        <div class="fieldrow"><label>Monthly rent collected</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.rentIncome"></div></div>
+        <div class="fieldrow"><label>Monthly expenses<span class="hint">HOA, insurance, property tax, on top of escrow</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.expenses"></div></div>
         <div class="fieldrow"><label>Net rental cash flow</label><div class="inputwrap"><span id="rental-cashflow" style="font-weight:600;">n/a</span></div></div>
       </div>
 
@@ -477,15 +484,16 @@
         <h3>Market &amp; planning assumptions</h3>
         <div class="sub">Reasonable long-run defaults, all editable.</div>
         <table class="param-table"><tbody>
-          <tr><td>Investment return</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.investmentReturn" data-pct="1">%</td></tr>
-          <tr><td>Home appreciation</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.homeAppreciation" data-pct="1">%</td></tr>
-          <tr><td>Inflation</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.inflation" data-pct="1">%</td></tr>
-          <tr><td>Safe withdrawal rate</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.swr" data-pct="1">%</td></tr>
-          <tr><td>Income growth rate</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.incomeGrowth" data-pct="1">%</td></tr>
-          <tr><td>Contribution increase rate<span class="hint">used by the "increase" scenario</span></td><td class="pval"><input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1">%</td></tr>
+          <tr><td>Investment return</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.investmentReturn" data-pct="1"><span class="unit">%</span></td></tr>
+          <tr><td>Home appreciation</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.homeAppreciation" data-pct="1"><span class="unit">%</span></td></tr>
+          <tr><td>Inflation</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.inflation" data-pct="1"><span class="unit">%</span></td></tr>
+          <tr><td>Safe withdrawal rate</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.swr" data-pct="1"><span class="unit">%</span></td></tr>
+          <tr><td>Income growth rate</td><td class="pval"><input type="number" step="0.1" data-path="assumptions.incomeGrowth" data-pct="1"><span class="unit">%</span></td></tr>
+          <tr><td>Contribution increase rate<span class="hint">used by the "increase" scenario</span></td><td class="pval"><input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1"><span class="unit">%</span></td></tr>
           <tr><td>Plan to age<span class="hint">sets how far out every projection runs</span></td><td class="pval"><input type="number" data-path="assumptions.planToAge"></td></tr>
-          <tr><td>401(k) annual cap<span class="hint">per person, used by "income-driven" contribution growth</span></td><td class="pval">$<input type="number" data-path="assumptions.cap401k"></td></tr>
-          <tr><td>HSA annual cap<span class="hint">per person</span></td><td class="pval">$<input type="number" data-path="assumptions.capHSA"></td></tr>
+          <tr><td>401(k) annual cap<span class="hint">per person, used by "income-driven" contribution growth</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.cap401k"></td></tr>
+          <tr><td>IRA annual cap<span class="hint">per person, Roth IRA only</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capIRA"></td></tr>
+          <tr><td>HSA annual cap<span class="hint">per person</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capHSA"></td></tr>
         </tbody></table>
         <div class="assumptext">
           Investment return 7% and inflation 3% are common long-run planning defaults for a diversified stock and bond portfolio. Home appreciation 3.5% tracks the long-run US average. Mortgage rate defaults to 6.5%, a recent-vintage rate: replace it with your actual rate. The 3% contribution increase approximates how the IRS 401(k) contribution cap has typically crept up.
@@ -494,26 +502,26 @@
 
       <div class="card">
         <h3>FIRE spending targets</h3>
-        <div class="sub">Annual spending in today's dollars, pre-filled from your budget. Edit freely.</div>
+        <div class="sub">Automatically computed from your itemized expenses on the Budget tab, so you never have to set these by hand. Chubby and Fat scale off Traditional by a multiplier you control.</div>
         <table class="param-table"><tbody>
-          <tr><td>Lean FIRE<span class="hint">essentials only</span></td><td class="pval">$<input type="number" data-path="fire.lean"></td></tr>
-          <tr><td>Traditional FIRE<span class="hint">essentials + discretionary, also used for Coast and Barista</span></td><td class="pval">$<input type="number" data-path="fire.traditional"></td></tr>
-          <tr><td>Chubby FIRE<span class="hint">real comfort, between Traditional and Fat</span></td><td class="pval">$<input type="number" data-path="fire.chubby"></td></tr>
-          <tr><td>Fat FIRE<span class="hint">a more comfortable lifestyle</span></td><td class="pval">$<input type="number" data-path="fire.fat"></td></tr>
-          <tr><td>Barista part-time income<span class="hint">offsets Traditional's spending target</span></td><td class="pval">$<input type="number" data-path="fire.baristaIncome"></td></tr>
+          <tr><td>Lean FIRE<span class="hint">essentials only, incl. mortgage</span></td><td class="pval" id="fire-lean-display" style="font-weight:600;">n/a</td></tr>
+          <tr><td>Traditional FIRE<span class="hint">essentials + discretionary; also used for Coast and Barista</span></td><td class="pval" id="fire-traditional-display" style="font-weight:600;">n/a</td></tr>
+          <tr><td>Chubby FIRE multiplier<span class="hint">&times; Traditional</span></td><td class="pval"><input type="number" step="0.05" data-path="fire.chubbyMultiplier"> &times; = <span id="fire-chubby-display" style="font-weight:600;">n/a</span></td></tr>
+          <tr><td>Fat FIRE multiplier<span class="hint">&times; Traditional</span></td><td class="pval"><input type="number" step="0.05" data-path="fire.fatMultiplier"> &times; = <span id="fire-fat-display" style="font-weight:600;">n/a</span></td></tr>
+          <tr><td>Barista part-time income<span class="hint">offsets Traditional's spending target</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="fire.baristaIncome"></td></tr>
         </tbody></table>
         <div class="assumptext" style="margin-top:12px;">
-          Your current itemized spending on the Budget tab (essential + discretionary, plus mortgage) comes to <b id="fire-target-reference">n/a</b>/yr today. The targets above are what you expect to spend in retirement, which can reasonably differ. They're not auto-synced to your current budget on purpose.
+          Want a different Lean or Traditional number than your actual current spending? Edit the expense list on the Budget tab (or add a line like "extra retirement travel") rather than typing a number here &mdash; that keeps every number in this tool pulling from one real source instead of two disconnected guesses.
         </div>
       </div>
 
       <div class="card">
         <h3>Future income <span class="hint" style="font-size:12px;">optional, left at $0 excludes them</span></h3>
         <table class="param-table"><tbody>
-          <tr><td>Wes's federal pension<span class="hint">annual, today's $</span></td><td class="pval">$<input type="number" data-path="futureIncome.pensionWes"></td></tr>
+          <tr><td>Wes's federal pension<span class="hint">annual, today's $</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="futureIncome.pensionWes"></td></tr>
           <tr><td>Pension start age</td><td class="pval"><input type="number" data-path="futureIncome.pensionStartAge"></td></tr>
-          <tr><td>Brad's Social Security estimate<span class="hint">annual, today's $</span></td><td class="pval">$<input type="number" data-path="futureIncome.ssBrad"></td></tr>
-          <tr><td>Wes's Social Security estimate<span class="hint">annual, today's $</span></td><td class="pval">$<input type="number" data-path="futureIncome.ssWes"></td></tr>
+          <tr><td>Brad's Social Security estimate<span class="hint">annual, today's $</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="futureIncome.ssBrad"></td></tr>
+          <tr><td>Wes's Social Security estimate<span class="hint">annual, today's $</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="futureIncome.ssWes"></td></tr>
           <tr><td>Social Security start age</td><td class="pval"><input type="number" data-path="futureIncome.ssStartAge"></td></tr>
         </tbody></table>
       </div>
@@ -523,13 +531,14 @@
         <div class="sub">A simplified model: no true bucket-by-bucket tracking, but it grosses up your required nest egg to cover taxes owed on withdrawals.</div>
         <table class="param-table"><tbody>
           <tr><td>Share of investable assets that's pre-tax<span class="hint">computed from your account balances</span></td><td class="pval" id="tax-trad-fraction" style="font-weight:600;">n/a</td></tr>
-          <tr><td>Effective tax rate on those withdrawals<span class="hint">blended federal rate you'd actually pay</span></td><td class="pval"><input type="number" step="1" data-path="tax.effectiveTaxRate" data-pct="1">%</td></tr>
+          <tr><td>Effective tax rate on those withdrawals<span class="hint">blended federal rate you'd actually pay</span></td><td class="pval"><input type="number" step="1" data-path="tax.effectiveTaxRate" data-pct="1"><span class="unit">%</span></td></tr>
           <tr><td>State of residence</td><td class="pval"><input type="text" data-path="tax.stateOfResidence" style="width:56px; text-align:right;"></td></tr>
-          <tr><td>State tax rate<span class="hint">added on top of the federal rate above</span></td><td class="pval"><input type="number" step="0.1" data-path="tax.stateTaxRate" data-pct="1">%</td></tr>
+          <tr><td>State tax rate<span class="hint">added on top of the federal rate above</span></td><td class="pval"><input type="number" step="0.1" data-path="tax.stateTaxRate" data-pct="1"><span class="unit">%</span></td></tr>
           <tr><td>Filing status<span class="hint">informational only, doesn't change the math yet</span></td><td class="pval">
-            <select data-path="tax.filingStatus">
-              <option value="mfj">Married filing jointly</option>
-              <option value="mfs">Married filing separately</option>
+            <select data-path="tax.filingStatus" class="fitted-select">
+              <option value="single">Single</option>
+              <option value="mfj">Married, joint</option>
+              <option value="mfs">Married, separate</option>
             </select>
           </td></tr>
         </tbody></table>
@@ -539,8 +548,8 @@
         <h3>Health care bridge</h3>
         <div class="sub">Marketplace premiums between retiring and Medicare at 65, added to spending only during that window for whichever of you it applies to.</div>
         <table class="param-table"><tbody>
-          <tr><td>Brad: monthly premium if retired before 65</td><td class="pval">$<input type="number" data-path="healthcare.bradMonthly"></td></tr>
-          <tr><td>Wes: monthly premium if retired before 65</td><td class="pval">$<input type="number" data-path="healthcare.wesMonthly"></td></tr>
+          <tr><td>Brad: monthly premium if retired before 65</td><td class="pval"><span class="unit">$</span><input type="number" data-path="healthcare.bradMonthly"></td></tr>
+          <tr><td>Wes: monthly premium if retired before 65</td><td class="pval"><span class="unit">$</span><input type="number" data-path="healthcare.wesMonthly"></td></tr>
         </tbody></table>
       </div>
 
@@ -549,7 +558,7 @@
         <div class="sub">Tracked separately from your investable assets and FIRE progress.</div>
         <table class="param-table"><tbody>
           <tr><td>Target coverage</td><td class="pval"><input type="number" data-path="emergencyFund.targetMonths"> mo.</td></tr>
-          <tr><td>Current balance</td><td class="pval">$<input type="number" data-path="emergencyFund.currentBalance"></td></tr>
+          <tr><td>Current balance</td><td class="pval"><span class="unit">$</span><input type="number" data-path="emergencyFund.currentBalance"></td></tr>
           <tr><td>Coverage today</td><td class="pval" id="ef-coverage" style="font-weight:600;">n/a</td></tr>
         </tbody></table>
       </div>
@@ -767,7 +776,7 @@
     <div class="card" style="margin-top:16px;">
       <h3>Monte Carlo simulation</h3>
       <div class="sub" style="margin-bottom:0;">
-        Runs 300 independent simulated futures. In each one, every year gets its own random investment return drawn from a normal distribution centered on your assumed return, with the spread set by the volatility input (default 15 percentage points of standard deviation), generated with a standard Box-Muller transform. Both of your combined investable assets share the same randomly drawn return in a given year in a given simulation, since a real market year doesn't move your accounts independently. Contributions follow the "keep current pace" schedule in every simulation. The other two scenarios aren't stress-tested. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the 55-year horizon. "Typical year" is the median year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth in each year; the dark line is the median (50th percentile) path.
+        Runs 300 independent simulated futures. In each one, every year gets its own random investment return drawn from a normal distribution centered on your assumed return, with the spread set by the volatility input (default 15 percentage points of standard deviation), generated with a standard Box-Muller transform. Both of your combined investable assets share the same randomly drawn return in a given year in a given simulation, since a real market year doesn't move your accounts independently. Contributions follow whichever scenario pill is selected on the Dashboard, including the flat-rate or income-driven mode if "Increase over time" is active. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the plan horizon. "Typical year" is the median year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth in each year; the dark line is the median (50th percentile) path.
       </div>
     </div>
 
@@ -797,13 +806,15 @@
 const state = {
   brad: { dob:'1990-11-14', retireAge:50, income:180000, employerMatch:0, accounts:{
     traditional:{ balance:450000, monthly:871 },
-    roth:{ balance:0, monthly:1451.66 },
+    roth401k:{ balance:0, monthly:1451.66 },
+    rothIRA:{ balance:0, monthly:0 },
     hsa:{ balance:0, monthly:366.66 },
     brokerage:{ balance:0, monthly:200 }
   }},
   wes: { dob:'1987-01-08', retireAge:65, income:125000, employerMatch:0, accounts:{
     traditional:{ balance:80000, monthly:730 },
-    roth:{ balance:0, monthly:0 },
+    roth401k:{ balance:0, monthly:0 },
+    rothIRA:{ balance:0, monthly:0 },
     hsa:{ balance:0, monthly:0 },
     brokerage:{ balance:0, monthly:0 }
   }},
@@ -811,7 +822,7 @@ const state = {
     primary: { purchasePrice:0, value:0, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
     rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
   },
-  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capHSA:4300 },
+  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300 },
   contributionMode: 'flat',
   expenses: [
     { id:'homeIns', name:'Home insurance', amount:184.50, category:'essential' },
@@ -829,9 +840,9 @@ const state = {
     { id:'roof', name:'Roof fund', amount:1733.33, category:'essential' },
     { id:'entertainment', name:'Entertainment', amount:363.65, category:'discretionary' }
   ],
-  fire: { lean:109500, traditional:114000, chubby:142500, fat:171000, baristaIncome:0 },
+  fire: { chubbyMultiplier:1.25, fatMultiplier:1.5, baristaIncome:0 },
   futureIncome: { pensionWes:0, pensionStartAge:62, ssBrad:0, ssWes:0, ssStartAge:67 },
-  tax: { effectiveTaxRate:0.15, incomeTaxRate:0.25, filingStatus:'mfj', stateOfResidence:'VA', stateTaxRate:0.0575 },
+  tax: { effectiveTaxRate:0.15, incomeTaxRate:0.25, filingStatus:'single', stateOfResidence:'VA', stateTaxRate:0.0575 },
   healthcare: { bradMonthly:0, wesMonthly:0 },
   emergencyFund: { targetMonths:6, currentBalance:0 },
   insurance: { life:false, disability:false, umbrella:false },
@@ -865,11 +876,11 @@ function setPath(obj, path, val){
 }
 function personAssets(who){
   const a = state[who].accounts;
-  return a.traditional.balance + a.roth.balance + a.hsa.balance + a.brokerage.balance;
+  return a.traditional.balance + a.roth401k.balance + a.rothIRA.balance + a.hsa.balance + a.brokerage.balance;
 }
 function personContrib(who){
   const a = state[who].accounts;
-  return a.traditional.monthly + a.roth.monthly + a.hsa.monthly + a.brokerage.monthly + state[who].employerMatch;
+  return a.traditional.monthly + a.roth401k.monthly + a.rothIRA.monthly + a.hsa.monthly + a.brokerage.monthly + state[who].employerMatch;
 }
 function computedTraditionalFraction(){
   const tradTotal = state.brad.accounts.traditional.balance + state.wes.accounts.traditional.balance;
@@ -901,9 +912,10 @@ function incomeDrivenExtraAnnual(who, yearOffset){
 }
 function capRoomAnnual(who){
   const a = state[who].accounts;
-  const room401k = Math.max(state.assumptions.cap401k - (a.traditional.monthly+a.roth.monthly)*12, 0);
+  const room401k = Math.max(state.assumptions.cap401k - (a.traditional.monthly+a.roth401k.monthly)*12, 0);
+  const roomIRA = Math.max(state.assumptions.capIRA - a.rothIRA.monthly*12, 0);
   const roomHSA = Math.max(state.assumptions.capHSA - a.hsa.monthly*12, 0);
-  return { room401k, roomHSA };
+  return { room401k, roomIRA, roomHSA };
 }
 function ageFromDob(dobStr, today){
   const dob = new Date(dobStr+'T00:00:00');
@@ -1004,13 +1016,17 @@ function project(scenarioKey){
   return rows;
 }
 
+function fireLeanToday(){ return essentialMonthlyTotal()*12; }
+function fireTraditionalToday(){ return (essentialMonthlyTotal()+discretionaryMonthlyTotal())*12; }
+function fireChubbyToday(){ return fireTraditionalToday()*state.fire.chubbyMultiplier; }
+function fireFatToday(){ return fireTraditionalToday()*state.fire.fatMultiplier; }
 function fireSpendingToday(type){
   const S = state;
-  if(type==='lean') return S.fire.lean;
-  if(type==='traditional' || type==='coast') return S.fire.traditional;
-  if(type==='chubby') return S.fire.chubby;
-  if(type==='fat') return S.fire.fat;
-  if(type==='barista') return Math.max(S.fire.traditional - S.fire.baristaIncome, 0);
+  if(type==='lean') return fireLeanToday();
+  if(type==='traditional' || type==='coast') return fireTraditionalToday();
+  if(type==='chubby') return fireChubbyToday();
+  if(type==='fat') return fireFatToday();
+  if(type==='barista') return Math.max(fireTraditionalToday() - S.fire.baristaIncome, 0);
   return 0;
 }
 function otherIncomeAt(bradAge, wesAge, yearOffset){
@@ -1263,8 +1279,22 @@ function runMonteCarlo(nSims){
       if(i>0){
         const r = randNormal(A.investmentReturn, A.returnStdev);
         let bradContrib=0, wesContrib=0;
-        if(bradAge < state.brad.retireAge) bradContrib = personContrib('brad')*12;
-        if(wesAge < state.wes.retireAge) wesContrib = personContrib('wes')*12;
+        if(bradAge < state.brad.retireAge){
+          if(nwScenario==='continue') bradContrib = personContrib('brad')*12;
+          else if(nwScenario==='increase'){
+            bradContrib = state.contributionMode==='incomeDriven'
+              ? personContrib('brad')*12 + incomeDrivenExtraAnnual('brad', i)
+              : personContrib('brad')*12*Math.pow(1+A.contributionGrowth,i);
+          }
+        }
+        if(wesAge < state.wes.retireAge){
+          if(nwScenario==='continue') wesContrib = personContrib('wes')*12;
+          else if(nwScenario==='increase'){
+            wesContrib = state.contributionMode==='incomeDriven'
+              ? personContrib('wes')*12 + incomeDrivenExtraAnnual('wes', i)
+              : personContrib('wes')*12*Math.pow(1+A.contributionGrowth,i);
+          }
+        }
         bradAssets = Math.max(bradAssets*(1+r)+bradContrib, 0);
         wesAssets = Math.max(wesAssets*(1+r)+wesContrib, 0);
       }
@@ -1401,13 +1431,14 @@ function buildSankeySVG(sources, hubLabel, dests, W, H){
 /* ===================== RENDER: DEBT ===================== */
 function renderDebt(){
   const R = runDebtPayoff();
+  const mortgageTotal = state.realEstate.primary.balance + state.realEstate.rental.balance;
   const el = document.getElementById('debt-stats');
   el.innerHTML = [
-    ['Total debt today', fmt$(R.totalToday)],
-    ['Weighted avg rate', (R.weightedRate*100).toFixed(1)+'%'],
-    ['Projected debt-free', R.month>0 ? R.debtFreeDate.toLocaleDateString('en-US',{month:'short',year:'numeric'}) : 'Already debt-free'],
-    ['Total interest paid', fmt$(R.totalInterest)]
-  ].map(([label,value])=>`<div class="stat"><div class="label">${label}</div><div class="value num">${value}</div></div>`).join('');
+    ['Non-property debt today', fmt$(R.totalToday)],
+    ['Total household debt', fmt$(R.totalToday+mortgageTotal), true],
+    ['Weighted avg rate (non-property)', (R.weightedRate*100).toFixed(1)+'%'],
+    ['Projected debt-free (non-property)', R.month>0 ? R.debtFreeDate.toLocaleDateString('en-US',{month:'short',year:'numeric'}) : 'Already debt-free']
+  ].map(([label,value,hl])=>`<div class="stat"><div class="label">${label}</div><div class="value ${hl?'teal':''} num">${value}</div></div>`).join('');
 
   if(charts['debt']) charts['debt'].destroy();
   const labels = R.history.filter((h,i)=> i%Math.max(1,Math.floor(R.history.length/60))===0 || i===R.history.length-1).map(h=>h.month);
@@ -1434,9 +1465,9 @@ function renderDebt(){
     const payoffLabel = d.paidOffMonth ? new Date(new Date().getFullYear(), new Date().getMonth()+d.paidOffMonth, 1).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : (sd.balance<=0 ? 'Already paid off' : 'Beyond horizon');
     return `<tr>
       <td style="text-align:left;"><input type="text" data-path="debts.${idx}.name" style="width:150px; text-align:left; font-weight:600;"></td>
-      <td class="num">$<input type="number" data-path="debts.${idx}.balance" style="width:90px;"></td>
-      <td class="num"><input type="number" step="0.01" data-path="debts.${idx}.rate" data-pct="1" style="width:64px;">%</td>
-      <td class="num">$<input type="number" data-path="debts.${idx}.payment" style="width:80px;"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.balance" style="width:90px;"></td>
+      <td class="num"><input type="number" step="0.01" data-path="debts.${idx}.rate" data-pct="1" style="width:64px;"><span class="unit">%</span></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.payment" style="width:80px;"></td>
       <td style="text-align:center;">#${rank}</td>
       <td style="text-align:center;">${payoffLabel}</td>
       <td class="num">${fmt$(d.totalInterest)}</td>
@@ -1471,7 +1502,7 @@ function renderExpenseTable(){
     const idx = state.expenses.indexOf(exp);
     return `<tr>
       <td style="text-align:left;"><input type="text" data-path="expenses.${idx}.name" style="width:170px; text-align:left; font-weight:600;"></td>
-      <td class="num">$<input type="number" data-path="expenses.${idx}.amount" style="width:90px;"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="expenses.${idx}.amount" style="width:90px;"></td>
       <td style="text-align:center;">
         <select data-path="expenses.${idx}.category">
           <option value="essential">Essential</option>
@@ -1569,11 +1600,17 @@ function renderInputsLive(){
   document.getElementById('wes-assets-total').textContent = fmt$full(personAssets('wes'));
   document.getElementById('wes-contrib-total').textContent = fmt$full(personContrib('wes'))+'/mo';
   document.getElementById('tax-trad-fraction').textContent = (computedTraditionalFraction()*100).toFixed(0)+'%';
-  document.getElementById('fire-target-reference').textContent = fmt$full(livingSpendingAnnualToday());
+  document.getElementById('fire-lean-display').textContent = fmt$full(fireLeanToday())+'/yr';
+  document.getElementById('fire-traditional-display').textContent = fmt$full(fireTraditionalToday())+'/yr';
+  document.getElementById('fire-chubby-display').textContent = fmt$full(fireChubbyToday())+'/yr';
+  document.getElementById('fire-fat-display').textContent = fmt$full(fireFatToday())+'/yr';
+  const bradRoom = capRoomAnnual('brad'), wesRoom = capRoomAnnual('wes');
+  document.getElementById('brad-cap-room').textContent = `Room left this year: ${fmt$full(bradRoom.room401k)} in 401(k), ${fmt$full(bradRoom.roomIRA)} in Roth IRA, ${fmt$full(bradRoom.roomHSA)} in HSA.`;
+  document.getElementById('wes-cap-room').textContent = `Room left this year: ${fmt$full(wesRoom.room401k)} in 401(k), ${fmt$full(wesRoom.roomIRA)} in Roth IRA, ${fmt$full(wesRoom.roomHSA)} in HSA.`;
 
   const bradA = state.brad.accounts, wesA = state.wes.accounts;
-  const bradUnsplit = bradA.roth.balance===0 && bradA.hsa.balance===0 && bradA.brokerage.balance===0 && bradA.traditional.balance>0;
-  const wesUnsplit = wesA.roth.balance===0 && wesA.hsa.balance===0 && wesA.brokerage.balance===0 && wesA.traditional.balance>0;
+  const bradUnsplit = bradA.roth401k.balance===0 && bradA.rothIRA.balance===0 && bradA.hsa.balance===0 && bradA.brokerage.balance===0 && bradA.traditional.balance>0;
+  const wesUnsplit = wesA.roth401k.balance===0 && wesA.rothIRA.balance===0 && wesA.hsa.balance===0 && wesA.brokerage.balance===0 && wesA.traditional.balance>0;
   document.getElementById('brad-trad-balance').classList.toggle('placeholder-guess', bradUnsplit);
   document.getElementById('brad-trad-balance').title = bradUnsplit ? 'Unverified: your full total is parked here as a placeholder. Split it across your real accounts.' : '';
   document.getElementById('wes-trad-balance').classList.toggle('placeholder-guess', wesUnsplit);
@@ -1586,7 +1623,7 @@ function renderInputsLive(){
     document.getElementById(id).classList.toggle('placeholder-empty', Number(document.getElementById(id).value)===0);
   });
 
-  const monthlyEssential = state.fire.lean/12;
+  const monthlyEssential = essentialMonthlyTotal();
   const efMonths = monthlyEssential>0 ? state.emergencyFund.currentBalance/monthlyEssential : 0;
   const efEl = document.getElementById('ef-coverage');
   efEl.textContent = efMonths.toFixed(1)+' months (target '+state.emergencyFund.targetMonths+')';
@@ -1677,6 +1714,7 @@ document.getElementById('nw-scenario-pills').addEventListener('click', (e)=>{
   pill.classList.add('active');
   nwScenario = pill.dataset.scn;
   document.getElementById('increase-rate-box').style.display = (nwScenario==='increase') ? 'flex' : 'none';
+  document.getElementById('mc-scenario-label').textContent = pill.textContent;
   renderDashboard();
 });
 function updateContribModeUI(){
