@@ -178,6 +178,12 @@
   }
   .btn:hover{ background:var(--teal-dark); }
   .btn:disabled{ background:var(--line); color:var(--ink-faint); cursor:default; }
+  .zoombar{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    background:var(--paper); border:1px solid var(--line); border-radius:99px;
+    padding:8px 8px 8px 18px; margin-bottom:16px; box-shadow:0 1px 3px rgba(30,49,40,0.05);
+  }
+  .zoombar-label{ font-size:12px; color:var(--ink-soft); font-weight:600; }
 
   .rowbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
 
@@ -236,6 +242,8 @@
   .personhead.wes{ color:var(--indigo); background:var(--indigo-wash); }
   .personblock{ border-left:3px solid var(--teal); background:var(--teal-wash); border-radius:0 8px 8px 0; padding:8px 10px 8px 14px; margin:14px -2px 0 -2px; }
   .personblock.wes{ border-left-color:var(--indigo); background:var(--indigo-wash); }
+  .personblock.property-primary{ border-left-color:var(--gold); background:var(--gold-wash); }
+  .personhead.property{ color:var(--gold); background:#fff; border:1px solid var(--gold); }
   .personblock .fieldrow{ margin:0 -10px 0 -14px; padding-left:14px; }
   .personblock .fieldrow:hover{ background:rgba(255,255,255,0.5); }
   .personblock .acct-table thead tr th{ background:var(--ink); }
@@ -384,8 +392,8 @@
       </div>
     </div>
 
-    <div class="rowbar" style="margin-bottom:0;">
-      <div class="sub" style="margin-bottom:0;">Chart zoom, applies to every chart on this page:</div>
+    <div class="zoombar">
+      <span class="zoombar-label">Chart zoom, applies to every chart on this page</span>
       <div class="pillgroup" id="dash-horizon-pills">
         <div class="pill" data-h="10">10 yrs</div>
         <div class="pill" data-h="20">20 yrs</div>
@@ -496,7 +504,15 @@
           <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="brad.retireAge"></div></div>
           <div class="fieldrow"><label>Annual salary</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.income"></div></div>
           <div class="fieldrow"><label>Secondary/side income<span class="hint">annual, e.g. trivia writing</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.secondaryIncome"></div></div>
-          <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.employerMatch"></div></div>
+          <div class="fieldrow"><label>Employer match type</label><div class="inputwrap">
+            <select data-path="brad.employerMatchType" style="width:90px;">
+              <option value="dollar">$ / month</option>
+              <option value="percent">% of salary</option>
+            </select>
+          </div></div>
+          <div class="fieldrow"><label>Employer match, $<span class="hint">used if match type is $/month</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.employerMatch"></div></div>
+          <div class="fieldrow"><label>Employer match, %<span class="hint">used if match type is % of salary</span></label><div class="inputwrap"><input type="number" step="0.1" data-path="brad.employerMatchPercent" data-pct="1"><span class="unit">%</span></div></div>
+          <div class="fieldrow"><label>Effective monthly match</label><div class="inputwrap"><span id="brad-match-display" style="font-weight:600;">n/a</span></div></div>
           <div id="brad-accounts-wrap"></div>
           <div class="hint" id="brad-cap-room" style="margin-top:2px; margin-bottom:10px;">n/a</div>
         </div>
@@ -506,7 +522,15 @@
           <div class="fieldrow"><label>Target retirement age</label><div class="inputwrap"><input type="number" data-path="wes.retireAge"></div></div>
           <div class="fieldrow"><label>Annual salary</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.income"></div></div>
           <div class="fieldrow"><label>Secondary/side income<span class="hint">annual</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.secondaryIncome"></div></div>
-          <div class="fieldrow"><label>Employer 401(k) match<span class="hint">monthly, on top of your own contributions</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.employerMatch"></div></div>
+          <div class="fieldrow"><label>Employer match type</label><div class="inputwrap">
+            <select data-path="wes.employerMatchType" style="width:90px;">
+              <option value="dollar">$ / month</option>
+              <option value="percent">% of salary</option>
+            </select>
+          </div></div>
+          <div class="fieldrow"><label>Employer match, $<span class="hint">used if match type is $/month</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.employerMatch"></div></div>
+          <div class="fieldrow"><label>Employer match, %<span class="hint">used if match type is % of salary</span></label><div class="inputwrap"><input type="number" step="0.1" data-path="wes.employerMatchPercent" data-pct="1"><span class="unit">%</span></div></div>
+          <div class="fieldrow"><label>Effective monthly match</label><div class="inputwrap"><span id="wes-match-display" style="font-weight:600;">n/a</span></div></div>
           <div id="wes-accounts-wrap"></div>
           <div class="hint" id="wes-cap-room" style="margin-top:2px; margin-bottom:10px;">n/a</div>
         </div>
@@ -516,24 +540,28 @@
       <div class="card">
         <h3>Real estate</h3>
         <div class="sub">Values are placeholders. Mortgage figures for the primary home are filled in from your September statement.</div>
-        <div class="personhead">6225 Cheryl Drive &middot; primary, owned jointly</div>
-        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.purchasePrice"></div></div>
-        <div class="fieldrow"><label>Current home value</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.value" id="in-primary-value"></div></div>
-        <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.balance" id="in-primary-balance"></div></div>
-        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.primary.rate" data-pct="1"><span class="unit">%</span></div></div>
-        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.piPayment"></div></div>
-        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.escrow"></div></div>
-        <div class="fieldrow"><label>Total monthly payment</label><div class="inputwrap"><span id="primary-total-payment" style="font-weight:600;">n/a</span></div></div>
-        <div class="personhead wes">4016 Georgia Ave Unit 1 &middot; rental, Wes's</div>
-        <div class="fieldrow"><label>Purchase price</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.purchasePrice"></div></div>
-        <div class="fieldrow"><label>Current property value</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.value" id="in-rental-value"></div></div>
-        <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.balance" id="in-rental-balance"></div></div>
-        <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.rental.rate" data-pct="1"><span class="unit">%</span></div></div>
-        <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.piPayment"></div></div>
-        <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.escrow"></div></div>
-        <div class="fieldrow"><label>Monthly rent collected</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.rentIncome"></div></div>
-        <div class="fieldrow"><label>Monthly expenses<span class="hint">HOA, insurance, property tax, on top of escrow</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.expenses"></div></div>
+        <div class="personblock property-primary">
+          <div class="personhead property">6225 Cheryl Drive &middot; primary, owned jointly</div>
+          <div class="fieldrow"><label>Purchase price</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.purchasePrice"></div></div>
+          <div class="fieldrow"><label>Current home value</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.value" id="in-primary-value"></div></div>
+          <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.balance" id="in-primary-balance"></div></div>
+          <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.primary.rate" data-pct="1"><span class="unit">%</span></div></div>
+          <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.piPayment"></div></div>
+          <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.primary.escrow"></div></div>
+          <div class="fieldrow"><label>Total monthly payment</label><div class="inputwrap"><span id="primary-total-payment" style="font-weight:600;">n/a</span></div></div>
+        </div>
+        <div class="personblock wes">
+          <div class="personhead wes">4016 Georgia Ave Unit 1 &middot; rental, Wes's</div>
+          <div class="fieldrow"><label>Purchase price</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.purchasePrice"></div></div>
+          <div class="fieldrow"><label>Current property value</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.value" id="in-rental-value"></div></div>
+          <div class="fieldrow"><label>Remaining mortgage balance</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.balance" id="in-rental-balance"></div></div>
+          <div class="fieldrow"><label>Mortgage interest rate</label><div class="inputwrap"><input type="number" step="0.001" data-path="realEstate.rental.rate" data-pct="1"><span class="unit">%</span></div></div>
+          <div class="fieldrow"><label>Monthly principal &amp; interest<span class="hint">goes toward the loan balance</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.piPayment"></div></div>
+          <div class="fieldrow"><label>Monthly escrow<span class="hint">taxes/insurance, doesn't reduce the loan</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.escrow"></div></div>
+          <div class="fieldrow"><label>Monthly rent collected</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.rentIncome"></div></div>
+          <div class="fieldrow"><label>Monthly expenses<span class="hint">HOA, insurance, property tax, on top of escrow</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="realEstate.rental.expenses"></div></div>
         <div class="fieldrow"><label>Net rental cash flow</label><div class="inputwrap"><span id="rental-cashflow" style="font-weight:600;">n/a</span></div></div>
+        </div>
       </div>
 
       <div class="card">
@@ -548,8 +576,17 @@
           <tr><td>Contribution increase rate<span class="hint">used by the "increase" scenario</span></td><td class="pval"><input type="number" step="0.1" data-path="assumptions.contributionGrowth" data-pct="1"><span class="unit">%</span></td></tr>
           <tr><td>Plan to age<span class="hint">sets how far out every projection runs</span></td><td class="pval"><input type="number" data-path="assumptions.planToAge"></td></tr>
           <tr><td>401(k) annual cap<span class="hint">per person, used by "income-driven" contribution growth</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.cap401k"></td></tr>
-          <tr><td>IRA annual cap<span class="hint">per person, Roth IRA only</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capIRA"></td></tr>
-          <tr><td>HSA annual cap<span class="hint">per person</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capHSA"></td></tr>
+          <tr><td>IRA annual cap<span class="hint">per person, Roth IRA only, before phase-out</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capIRA"></td></tr>
+          <tr><td>Roth IRA phase-out starts<span class="hint">income where eligibility starts shrinking; verify current-year IRS figures</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.rothPhaseoutStart"></td></tr>
+          <tr><td>Roth IRA phase-out ends<span class="hint">income where eligibility hits $0</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.rothPhaseoutEnd"></td></tr>
+          <tr><td>HSA coverage</td><td class="pval">
+            <select data-path="assumptions.hsaCoverageType" style="width:90px;">
+              <option value="self">Self-only</option>
+              <option value="family">Family</option>
+            </select>
+          </td></tr>
+          <tr><td>HSA annual cap, self-only</td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capHSA"></td></tr>
+          <tr><td>HSA annual cap, family<span class="hint">applies to Brad since Wes is on his plan</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="assumptions.capHSAFamily"></td></tr>
           <tr><td>Lifestyle creep rate<span class="hint">extra spending growth above inflation, used by the Liquid Assets chart</span></td><td class="pval"><input type="number" step="0.1" data-path="assumptions.lifestyleCreepRate" data-pct="1"><span class="unit">%</span></td></tr>
         </tbody></table>
         <div class="assumptext">
@@ -563,11 +600,11 @@
         <table class="param-table"><tbody>
           <tr><td>Lean FIRE<span class="hint">essentials only, incl. mortgage</span></td><td class="pval" id="fire-lean-display" style="font-weight:600;">n/a</td></tr>
           <tr><td>Traditional FIRE<span class="hint">essentials + discretionary; also used for Coast and Barista</span></td><td class="pval" id="fire-traditional-display" style="font-weight:600;">n/a</td></tr>
-          <tr><td>Chubby FIRE multiplier<span class="hint">&times; Traditional</span></td><td class="pval" style="white-space:normal;"><div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;"><input type="number" step="0.05" data-path="fire.chubbyMultiplier" style="width:60px;">&times;<span id="fire-chubby-display" style="font-weight:600; font-size:11.5px;">n/a</span></div></td></tr>
-          <tr><td>Fat FIRE multiplier<span class="hint">&times; Traditional</span></td><td class="pval" style="white-space:normal;"><div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;"><input type="number" step="0.05" data-path="fire.fatMultiplier" style="width:60px;">&times;<span id="fire-fat-display" style="font-weight:600; font-size:11.5px;">n/a</span></div></td></tr>
           <tr><td>Barista part-time income<span class="hint">offsets Traditional's spending target</span></td><td class="pval"><span class="unit">$</span><input type="number" data-path="fire.baristaIncome"></td></tr>
           <tr><td>Coast FIRE<span class="hint">no spending target here on purpose, see below</span></td><td class="pval" style="color:var(--ink-faint); font-style:italic;">not a spending amount</td></tr>
         </tbody></table>
+        <div class="fieldrow"><label>Chubby FIRE multiplier<span class="hint">&times; Traditional</span></label><div class="inputwrap"><input type="number" step="0.05" data-path="fire.chubbyMultiplier" style="width:56px;">&times; <span id="fire-chubby-display" style="font-weight:600;">n/a</span></div></div>
+        <div class="fieldrow"><label>Fat FIRE multiplier<span class="hint">&times; Traditional</span></label><div class="inputwrap"><input type="number" step="0.05" data-path="fire.fatMultiplier" style="width:56px;">&times; <span id="fire-fat-display" style="font-weight:600;">n/a</span></div></div>
         <div class="assumptext" style="margin-top:12px;">
           Want a different Lean or Traditional number than your actual current spending? Edit the expense list on the Budget tab (or add a line like "extra retirement travel") rather than typing a number here. That keeps every number in this tool pulling from one real source instead of two disconnected guesses.
         </div>
@@ -974,20 +1011,25 @@
 <script>
 /* ===================== STATE ===================== */
 const state = {
-  brad: { dob:'1990-11-14', retireAge:50, income:180000, secondaryIncome:0, employerMatch:0, accounts:[
-    { id:'b1', name:'Traditional 401(k)', type:'traditional', balance:450000, monthly:871 },
-    { id:'b2', name:'Roth 401(k)', type:'roth401k', balance:0, monthly:1451.66 },
-    { id:'b3', name:'HSA', type:'hsa', balance:0, monthly:366.66 },
-    { id:'b4', name:'Brokerage', type:'brokerage', balance:0, monthly:200 }
+  brad: { dob:'1990-11-14', retireAge:50, income:188717, secondaryIncome:0, employerMatch:393.16, employerMatchType:'percent', employerMatchPercent:0.025, accounts:[
+    { id:'b1', name:'WF Checking', type:'checking', balance:19018.29, monthly:0 },
+    { id:'b2', name:'WF Savings', type:'savings', balance:109.67, monthly:0 },
+    { id:'b3', name:'Ally Savings', type:'savings', balance:266.84, monthly:0 },
+    { id:'b4', name:'Fidelity Brokerage', type:'brokerage', balance:114153.51, monthly:200 },
+    { id:'b5', name:'Fidelity Traditional 401(k)', type:'traditional', balance:114857.24, monthly:943.58 },
+    { id:'b6', name:'Fidelity Roth 401(k)', type:'roth401k', balance:234589.20, monthly:1573.13 },
+    { id:'b7', name:'Paylocity HSA', type:'hsa', balance:2933.28, monthly:397.22, liquidPortion:2000 },
+    { id:'b8', name:'Wex HSA', type:'hsa', balance:50641.06, monthly:0, liquidPortion:2500 },
+    { id:'b9', name:'Vanguard IRA', type:'traditional', balance:14809.77, monthly:0 }
   ]},
-  wes: { dob:'1987-01-08', retireAge:65, income:125000, secondaryIncome:0, employerMatch:0, accounts:[
+  wes: { dob:'1987-01-08', retireAge:65, income:125000, secondaryIncome:0, employerMatch:0, employerMatchType:'dollar', employerMatchPercent:0, accounts:[
     { id:'w1', name:'Traditional 401(k)', type:'traditional', balance:80000, monthly:730 }
   ]},
   realEstate: {
     primary: { purchasePrice:0, value:0, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
     rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
   },
-  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300, lifestyleCreepRate:0.01 },
+  assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300, capHSAFamily:8550, hsaCoverageType:'family', rothPhaseoutStart:150000, rothPhaseoutEnd:165000, lifestyleCreepRate:0.01 },
   contributionMode: 'incomeDriven',
   expenses: [
     { id:'homeIns', name:'Home insurance', amount:184.50, category:'essential' },
@@ -1067,8 +1109,29 @@ function setPath(obj, path, val){
 function personAssets(who){
   return state[who].accounts.reduce((s,a)=>s+a.balance, 0);
 }
+function personCashAssets(who){
+  return state[who].accounts.reduce((s,a)=>{
+    if(CASH_TYPES.includes(a.type)) return s+a.balance;
+    if(a.type==='hsa') return s+Math.min(a.liquidPortion||0, a.balance);
+    return s;
+  },0);
+}
+function personGrowableAssets(who){
+  return personAssets(who) - personCashAssets(who);
+}
+function personEmployerMatch(who){
+  const p = state[who];
+  if(p.employerMatchType==='percent') return (p.income/12)*p.employerMatchPercent;
+  return p.employerMatch;
+}
 function personContrib(who){
-  return state[who].accounts.reduce((s,a)=>s+a.monthly, 0) + state[who].employerMatch;
+  return state[who].accounts.reduce((s,a)=>s+a.monthly, 0) + personEmployerMatch(who);
+}
+function personContribGrowable(who){
+  return state[who].accounts.reduce((s,a)=> CASH_TYPES.includes(a.type) ? s : s+a.monthly, 0) + personEmployerMatch(who);
+}
+function personContribCash(who){
+  return state[who].accounts.reduce((s,a)=> CASH_TYPES.includes(a.type) ? s+a.monthly : s, 0);
 }
 function computedTraditionalFraction(){
   const tradTotal = state.brad.accounts.filter(a=>a.type==='traditional').reduce((s,a)=>s+a.balance,0)
@@ -1099,12 +1162,22 @@ function incomeDrivenExtraAnnual(who, yearOffset){
   const share = income0>0 ? personIncome0(who)/income0 : 0.5;
   return extraTotal*share;
 }
+function rothIRAEligibleFraction(who){
+  const A = state.assumptions;
+  const income = state[who].income + state[who].secondaryIncome;
+  if(income <= A.rothPhaseoutStart) return 1;
+  if(income >= A.rothPhaseoutEnd) return 0;
+  return (A.rothPhaseoutEnd-income)/(A.rothPhaseoutEnd-A.rothPhaseoutStart);
+}
 function capRoomAnnual(who){
   const a = state[who].accounts;
+  const A = state.assumptions;
   const sumBy = types => a.filter(x=>types.includes(x.type)).reduce((s,x)=>s+x.monthly,0);
-  const room401k = Math.max(state.assumptions.cap401k - sumBy(['traditional','roth401k'])*12, 0);
-  const roomIRA = Math.max(state.assumptions.capIRA - sumBy(['rothIRA'])*12, 0);
-  const roomHSA = Math.max(state.assumptions.capHSA - sumBy(['hsa'])*12, 0);
+  const room401k = Math.max(A.cap401k - sumBy(['traditional','roth401k'])*12, 0);
+  const effectiveCapIRA = A.capIRA * rothIRAEligibleFraction(who);
+  const roomIRA = Math.max(effectiveCapIRA - sumBy(['rothIRA'])*12, 0);
+  const capHSAEffective = (who==='brad' && A.hsaCoverageType==='family') ? A.capHSAFamily : A.capHSA;
+  const roomHSA = Math.max(capHSAEffective - sumBy(['hsa'])*12, 0);
   return { room401k, roomIRA, roomHSA };
 }
 function ageFromDob(dobStr, today){
@@ -1148,8 +1221,10 @@ function project(scenarioKey){
   const startYear = today.getFullYear();
   const startMonth = today.getMonth();
 
-  let bradAssets = personAssets('brad');
-  let wesAssets = personAssets('wes');
+  let bradGrowable = personGrowableAssets('brad');
+  let bradCash = personCashAssets('brad');
+  let wesGrowable = personGrowableAssets('wes');
+  let wesCash = personCashAssets('wes');
   let homeValue = S.realEstate.primary.value;
   let homeBalance = S.realEstate.primary.balance;
   let rentalValue = S.realEstate.rental.value;
@@ -1168,31 +1243,45 @@ function project(scenarioKey){
     const yearFrac = i/12;
 
     if(i>0){
-      let bradContrib=0, wesContrib=0;
+      let bradContribG=0, bradContribC=0, wesContribG=0, wesContribC=0;
       if(bradAgeMonths < S.brad.retireAge*12){
-        if(scenarioKey==='continue') bradContrib = personContrib('brad');
+        if(scenarioKey==='continue'){ bradContribG = personContribGrowable('brad'); bradContribC = personContribCash('brad'); }
         else if(scenarioKey==='increase'){
-          bradContrib = S.contributionMode==='incomeDriven'
-            ? personContrib('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12
-            : personContrib('brad')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+          if(S.contributionMode==='incomeDriven'){
+            bradContribG = personContribGrowable('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12;
+            bradContribC = personContribCash('brad');
+          } else {
+            const gf = Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+            bradContribG = personContribGrowable('brad')*gf;
+            bradContribC = personContribCash('brad')*gf;
+          }
         }
       }
       if(wesAgeMonths < S.wes.retireAge*12){
-        if(scenarioKey==='continue') wesContrib = personContrib('wes');
+        if(scenarioKey==='continue'){ wesContribG = personContribGrowable('wes'); wesContribC = personContribCash('wes'); }
         else if(scenarioKey==='increase'){
-          wesContrib = S.contributionMode==='incomeDriven'
-            ? personContrib('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12
-            : personContrib('wes')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+          if(S.contributionMode==='incomeDriven'){
+            wesContribG = personContribGrowable('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12;
+            wesContribC = personContribCash('wes');
+          } else {
+            const gf = Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+            wesContribG = personContribGrowable('wes')*gf;
+            wesContribC = personContribCash('wes')*gf;
+          }
         }
       }
-      bradAssets = bradAssets*(1+monthlyReturn) + bradContrib;
-      wesAssets = wesAssets*(1+monthlyReturn) + wesContrib;
+      bradGrowable = bradGrowable*(1+monthlyReturn) + bradContribG;
+      bradCash = bradCash + bradContribC;
+      wesGrowable = wesGrowable*(1+monthlyReturn) + wesContribG;
+      wesCash = wesCash + wesContribC;
       homeBalance = amortizeMonth(homeBalance, S.realEstate.primary.rate, S.realEstate.primary.piPayment);
       rentalBalance = amortizeMonth(rentalBalance, S.realEstate.rental.rate, S.realEstate.rental.piPayment);
       homeValue *= (1+monthlyHomeApp);
       rentalValue *= (1+monthlyHomeApp);
     }
 
+    const bradAssets = bradGrowable+bradCash;
+    const wesAssets = wesGrowable+wesCash;
     const homeEquity = Math.max(homeValue-homeBalance,0);
     const rentalEquity = Math.max(rentalValue-rentalBalance,0);
     const bradHomeEq = homeEquity*S.realEstate.primary.ownership.brad;
@@ -1226,7 +1315,8 @@ function projectLiquidDrawdown(scenarioKey, withCreep){
   const spendToday = fireSpendingToday('traditional');
   const creepRate = withCreep ? S.assumptions.lifestyleCreepRate : 0;
 
-  let combined = personAssets('brad')+personAssets('wes');
+  let growable = personGrowableAssets('brad')+personGrowableAssets('wes');
+  let cash = personCashAssets('brad')+personCashAssets('wes');
   const rows = [];
   for(let i=0;i<totalMonths;i++){
     const bradAgeMonths = bradM0+i, wesAgeMonths = wesM0+i;
@@ -1234,33 +1324,39 @@ function projectLiquidDrawdown(scenarioKey, withCreep){
     const yearFrac = i/12;
     if(i>0){
       if(i<=fullRetireMonths){
-        let bradContrib=0, wesContrib=0;
+        let contribG=0, contribC=0;
         if(bradAgeMonths < S.brad.retireAge*12){
-          if(scenarioKey==='continue') bradContrib = personContrib('brad');
+          if(scenarioKey==='continue'){ contribG += personContribGrowable('brad'); contribC += personContribCash('brad'); }
           else if(scenarioKey==='increase'){
-            bradContrib = S.contributionMode==='incomeDriven'
-              ? personContrib('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12
-              : personContrib('brad')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+            if(S.contributionMode==='incomeDriven'){ contribG += personContribGrowable('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12; contribC += personContribCash('brad'); }
+            else { const gf=Math.pow(1+S.assumptions.contributionGrowth,yearFrac); contribG += personContribGrowable('brad')*gf; contribC += personContribCash('brad')*gf; }
           }
         }
         if(wesAgeMonths < S.wes.retireAge*12){
-          if(scenarioKey==='continue') wesContrib = personContrib('wes');
+          if(scenarioKey==='continue'){ contribG += personContribGrowable('wes'); contribC += personContribCash('wes'); }
           else if(scenarioKey==='increase'){
-            wesContrib = S.contributionMode==='incomeDriven'
-              ? personContrib('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12
-              : personContrib('wes')*Math.pow(1+S.assumptions.contributionGrowth,yearFrac);
+            if(S.contributionMode==='incomeDriven'){ contribG += personContribGrowable('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12; contribC += personContribCash('wes'); }
+            else { const gf=Math.pow(1+S.assumptions.contributionGrowth,yearFrac); contribG += personContribGrowable('wes')*gf; contribC += personContribCash('wes')*gf; }
           }
         }
-        combined = combined*(1+monthlyReturn) + bradContrib + wesContrib;
+        growable = growable*(1+monthlyReturn) + contribG;
+        cash = cash + contribC;
       } else {
         const monthlySpend = spendToday*Math.pow(1+S.assumptions.inflation+creepRate, yearFrac)/12;
         const other = otherIncomeAt(bradAge, wesAge, yearFrac)/12;
         const netWithdrawal = Math.max(monthlySpend-other, 0);
-        combined = Math.max(combined*(1+monthlyReturn) - netWithdrawal, 0);
+        growable = growable*(1+monthlyReturn);
+        if(cash >= netWithdrawal){
+          cash -= netWithdrawal;
+        } else {
+          const shortfall = netWithdrawal - cash;
+          cash = 0;
+          growable = Math.max(growable - shortfall, 0);
+        }
       }
     }
     const calMonth = (startMonth+i)%12, calYear = startYear+Math.floor((startMonth+i)/12);
-    rows.push({ i, year:calYear, month:calMonth, bradAge, wesAge, liquid:combined });
+    rows.push({ i, year:calYear, month:calMonth, bradAge, wesAge, liquid: growable+cash });
   }
   return rows;
 }
@@ -1747,7 +1843,11 @@ function renderDebt(){
   const debtHistClipped = debtHorizonYears ? R.history.slice(0, debtHorizonYears*12+1) : R.history;
   const sampleEvery = Math.max(1,Math.floor(debtHistClipped.length/60));
   const sampled = debtHistClipped.filter((h,i)=> i%sampleEvery===0 || i===debtHistClipped.length-1);
-  const labels = sampled.map(h=>h.month);
+  const debtToday = new Date();
+  const labels = sampled.map(h=>{
+    const d = new Date(debtToday.getFullYear(), debtToday.getMonth()+h.month, 1);
+    return MONTH_ABBR[d.getMonth()]+" '"+String(d.getFullYear()).slice(2);
+  });
   const palette = ['#A2532E','#3F6B52','#5A6B95','#B8935A','#8FA894','#1E3128'];
   const debtDatasets = state.debts.map((sd,idx)=>({
     label: sd.name,
@@ -1763,10 +1863,10 @@ function renderDebt(){
       interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{ position:'top', align:'end', labels:{ boxWidth:10, boxHeight:10, font:{size:11} } },
-        tooltip:{ callbacks:{ label:(ctx)=>ctx.dataset.label+': '+fmt$full(ctx.parsed.y), title:(items)=>'Month '+items[0].label } }
+        tooltip:{ callbacks:{ label:(ctx)=>ctx.dataset.label+': '+fmt$full(ctx.parsed.y), title:(items)=>items[0].label } }
       },
       scales:{
-        x:{ title:{ display:true, text:'Months from now' }, grid:{ display:false } },
+        x:{ grid:{ display:false }, ticks:{ maxTicksLimit:10 } },
         y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
       }
     }
@@ -1819,18 +1919,32 @@ const ACCOUNT_TYPES = [
   ['rothIRA','Roth IRA'],
   ['hsa','HSA'],
   ['brokerage','Brokerage / taxable'],
+  ['checking','Checking'],
+  ['savings','Savings'],
   ['other','Other']
 ];
+const CASH_TYPES = ['checking','savings'];
 function renderAccountsTable(who){
   const list = state[who].accounts;
   const typeOptions = t => ACCOUNT_TYPES.map(([v,label])=>`<option value="${v}"${t===v?' selected':''}>${label}</option>`).join('');
-  const rows = list.map((acc,idx)=>`<tr>
+  const rows = list.map((acc,idx)=>{
+    let extra = '';
+    if(acc.type==='hsa'){
+      extra = `<tr><td colspan="5" style="padding-top:0; padding-bottom:6px;">
+        <span class="hint">Kept liquid (cash) in this HSA, rest counts as invested:</span>
+        <span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.liquidPortion" style="width:70px;">
+      </td></tr>`;
+    } else if(CASH_TYPES.includes(acc.type)){
+      extra = `<tr><td colspan="5" style="padding-top:0; padding-bottom:6px;"><span class="hint">Treated as cash. Not assumed to grow at the market rate.</span></td></tr>`;
+    }
+    return `<tr>
     <td><input type="text" data-path="${who}.accounts.${idx}.name" style="width:100px; text-align:left;"></td>
     <td><select data-path="${who}.accounts.${idx}.type" style="font-size:11px; padding:4px 3px; width:100%; max-width:112px;">${typeOptions(acc.type)}</select></td>
     <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.balance" id="${who}-acct-${idx}-balance" style="width:76px;"></td>
     <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.monthly" style="width:72px;"></td>
     <td style="text-align:center;"><span class="account-remove" data-who="${who}" data-id="${acc.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span></td>
-  </tr>`).join('');
+  </tr>${extra}`;
+  }).join('');
   const html = `<table class="acct-table">
     <thead><tr><th style="text-align:left;">${who==='brad'?"Brad's":"Wes's"} accounts</th><th>Type</th><th>Balance</th><th>Monthly</th><th></th></tr></thead>
     <tbody>${rows}
@@ -1849,7 +1963,7 @@ function renderAccountsTable(who){
   });
   document.querySelectorAll('#'+who+'-accounts-wrap .acct-add-btn').forEach(el=>{
     el.addEventListener('click', ()=>{
-      state[el.dataset.who].accounts.push({ id:'acct'+Date.now(), name:'New account', type:'brokerage', balance:0, monthly:0 });
+      state[el.dataset.who].accounts.push({ id:'acct'+Date.now(), name:'New account', type:'brokerage', balance:0, monthly:0, liquidPortion:0 });
       saveState();
       renderInputsLive();
     });
@@ -2059,8 +2173,10 @@ function renderInputsLive(){
   document.getElementById('fire-chubby-display').textContent = fmt$full(fireChubbyToday())+'/yr';
   document.getElementById('fire-fat-display').textContent = fmt$full(fireFatToday())+'/yr';
   const bradRoom = capRoomAnnual('brad'), wesRoom = capRoomAnnual('wes');
-  document.getElementById('brad-cap-room').textContent = `Room left this year: ${fmt$full(bradRoom.room401k)} in 401(k), ${fmt$full(bradRoom.roomIRA)} in Roth IRA, ${fmt$full(bradRoom.roomHSA)} in HSA.`;
-  document.getElementById('wes-cap-room').textContent = `Room left this year: ${fmt$full(wesRoom.room401k)} in 401(k), ${fmt$full(wesRoom.roomIRA)} in Roth IRA, ${fmt$full(wesRoom.roomHSA)} in HSA.`;
+  document.getElementById('brad-cap-room').textContent = `Room left this year: ${fmt$full(bradRoom.room401k)} in 401(k), ${fmt$full(bradRoom.roomIRA)} in Roth IRA (${(rothIRAEligibleFraction('brad')*100).toFixed(0)}% eligible at your income), ${fmt$full(bradRoom.roomHSA)} in HSA.`;
+  document.getElementById('wes-cap-room').textContent = `Room left this year: ${fmt$full(wesRoom.room401k)} in 401(k), ${fmt$full(wesRoom.roomIRA)} in Roth IRA (${(rothIRAEligibleFraction('wes')*100).toFixed(0)}% eligible at your income), ${fmt$full(wesRoom.roomHSA)} in HSA.`;
+  document.getElementById('brad-match-display').textContent = fmt$full(personEmployerMatch('brad'))+'/mo';
+  document.getElementById('wes-match-display').textContent = fmt$full(personEmployerMatch('wes'))+'/mo';
 
   function flagUnsplitGuess(who){
     const list = state[who].accounts;
@@ -2090,7 +2206,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.6.1';
+const APP_VERSION = '1.7.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
