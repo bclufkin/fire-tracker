@@ -962,7 +962,7 @@
     <div class="card" style="margin-top:16px;">
       <h3>Monte Carlo simulation</h3>
       <div class="sub" style="margin-bottom:0;">
-        Runs 300 independent simulated futures, month by month. Each month gets its own random investment return drawn from a normal distribution generated with a standard Box-Muller transform, centered on your assumed return converted to a monthly-equivalent mean, with the monthly standard deviation set by scaling your volatility input by the square root of 12 (the standard way to convert annual volatility to monthly). Both of your combined investable assets share the same randomly drawn return in a given month in a given simulation, since a real market month doesn't move your accounts independently. Contributions follow whichever scenario pill is selected on the Dashboard, including the flat-rate or income-driven mode if "Increase over time" is active. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the plan horizon. "Typical month" is the median month and year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth at each point; the dark line is the median (50th percentile) path.
+        Runs 300 independent simulated futures, month by month. Each month gets its own random investment return drawn from a normal distribution generated with a standard Box-Muller transform, centered on your assumed return converted to a monthly-equivalent mean, with the monthly standard deviation set by scaling your volatility input by the square root of 12 (the standard way to convert annual volatility to monthly). That random return only applies to each person's growable balance (everything except checking, savings, and the liquid portion of HSAs); cash balances are carried forward flat with no growth and no volatility, same as everywhere else in the tool. Both of your growable balances share the same randomly drawn return in a given month in a given simulation, since a real market month doesn't move your accounts independently. Contributions follow whichever scenario pill is selected on the Dashboard, including the flat-rate or income-driven mode if "Increase over time" is active, and split into growable versus cash the same way the main projection does. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the plan horizon. "Typical month" is the median month and year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth at each point; the dark line is the median (50th percentile) path.
       </div>
     </div>
 
@@ -1661,7 +1661,8 @@ function runMonteCarlo(nSims){
 
   const trajectories = [];
   for(let s=0; s<nSims; s++){
-    let bradAssets = personAssets('brad'), wesAssets = personAssets('wes');
+    let bradGrowable = personGrowableAssets('brad'), bradCash = personCashAssets('brad');
+    let wesGrowable = personGrowableAssets('wes'), wesCash = personCashAssets('wes');
     const traj = [];
     const foundThisSim = {}; types.forEach(t=>foundThisSim[t]=false);
     for(let i=0;i<totalMonths;i++){
@@ -1669,28 +1670,40 @@ function runMonteCarlo(nSims){
       const bradAge = Math.floor(bradAgeMonths/12), wesAge = Math.floor(wesAgeMonths/12);
       if(i>0){
         const r = randNormal(monthlyMean, monthlyStdev);
-        let bradContrib=0, wesContrib=0;
+        let bradContribG=0, bradContribC=0, wesContribG=0, wesContribC=0;
         const yearFrac = i/12;
         if(bradAgeMonths < state.brad.retireAge*12){
-          if(nwScenario==='continue') bradContrib = personContrib('brad');
+          if(nwScenario==='continue'){ bradContribG = personContribGrowable('brad'); bradContribC = personContribCash('brad'); }
           else if(nwScenario==='increase'){
-            bradContrib = state.contributionMode==='incomeDriven'
-              ? personContrib('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12
-              : personContrib('brad')*Math.pow(1+A.contributionGrowth,yearFrac);
+            if(state.contributionMode==='incomeDriven'){
+              bradContribG = personContribGrowable('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12;
+              bradContribC = personContribCash('brad');
+            } else {
+              const gf = Math.pow(1+A.contributionGrowth,yearFrac);
+              bradContribG = personContribGrowable('brad')*gf;
+              bradContribC = personContribCash('brad')*gf;
+            }
           }
         }
         if(wesAgeMonths < state.wes.retireAge*12){
-          if(nwScenario==='continue') wesContrib = personContrib('wes');
+          if(nwScenario==='continue'){ wesContribG = personContribGrowable('wes'); wesContribC = personContribCash('wes'); }
           else if(nwScenario==='increase'){
-            wesContrib = state.contributionMode==='incomeDriven'
-              ? personContrib('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12
-              : personContrib('wes')*Math.pow(1+A.contributionGrowth,yearFrac);
+            if(state.contributionMode==='incomeDriven'){
+              wesContribG = personContribGrowable('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12;
+              wesContribC = personContribCash('wes');
+            } else {
+              const gf = Math.pow(1+A.contributionGrowth,yearFrac);
+              wesContribG = personContribGrowable('wes')*gf;
+              wesContribC = personContribCash('wes')*gf;
+            }
           }
         }
-        bradAssets = Math.max(bradAssets*(1+r)+bradContrib, 0);
-        wesAssets = Math.max(wesAssets*(1+r)+wesContrib, 0);
+        bradGrowable = Math.max(bradGrowable*(1+r)+bradContribG, 0);
+        bradCash = bradCash + bradContribC;
+        wesGrowable = Math.max(wesGrowable*(1+r)+wesContribG, 0);
+        wesCash = wesCash + wesContribC;
       }
-      const combined = bradAssets+wesAssets;
+      const combined = bradGrowable+bradCash+wesGrowable+wesCash;
       traj.push(combined);
       const row = { i, bradAge, wesAge };
       types.forEach(t=>{
@@ -2206,7 +2219,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.7.1';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
