@@ -332,9 +332,12 @@
     .pillgroup{ flex-wrap:wrap; }
     .personblock{ margin-left:0; margin-right:0; }
     .tablewrap table{ font-size:11.5px; }
-    .acct-table{ font-size:10.5px; }
-    .acct-table th:first-child, .acct-table td:first-child{ width:24%; }
-    .acct-table th:nth-child(2), .acct-table td:nth-child(2){ width:26%; }
+    .acct-table{ font-size:10px; }
+    .acct-table th, .acct-table td{ padding:3px 3px; }
+    .acct-table th:first-child, .acct-table td:first-child{ width:30%; }
+    .acct-table th:nth-child(2), .acct-table td:nth-child(2){ width:20%; }
+    .acct-table select{ font-size:9.5px !important; padding:3px 1px !important; }
+    .acct-table .unit{ width:8px; font-size:10px; }
   }
   @media (max-width:480px){
     .stats{ grid-template-columns:1fr; }
@@ -1026,8 +1029,8 @@ const state = {
     { id:'w1', name:'Traditional 401(k)', type:'traditional', balance:80000, monthly:730 }
   ]},
   realEstate: {
-    primary: { purchasePrice:0, value:0, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
-    rental:  { purchasePrice:0, value:0, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
+    primary: { purchasePrice:870000, value:1080090, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
+    rental:  { purchasePrice:369900, value:358587, balance:0, rate:0.065, piPayment:1933.00, escrow:0, rentIncome:1700, expenses:535.37 }
   },
   assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300, capHSAFamily:8550, hsaCoverageType:'family', rothPhaseoutStart:150000, rothPhaseoutEnd:165000, lifestyleCreepRate:0.01 },
   contributionMode: 'incomeDriven',
@@ -1951,10 +1954,10 @@ function renderAccountsTable(who){
       extra = `<tr><td colspan="5" style="padding-top:0; padding-bottom:6px;"><span class="hint">Treated as cash. Not assumed to grow at the market rate.</span></td></tr>`;
     }
     return `<tr>
-    <td><input type="text" data-path="${who}.accounts.${idx}.name" style="width:100px; text-align:left;"></td>
+    <td><input type="text" data-path="${who}.accounts.${idx}.name" style="width:100%; max-width:100px; text-align:left;"></td>
     <td><select data-path="${who}.accounts.${idx}.type" style="font-size:11px; padding:4px 3px; width:100%; max-width:112px;">${typeOptions(acc.type)}</select></td>
-    <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.balance" id="${who}-acct-${idx}-balance" style="width:76px;"></td>
-    <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.monthly" style="width:72px;"></td>
+    <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.balance" id="${who}-acct-${idx}-balance" style="width:100%; max-width:76px;"></td>
+    <td><span class="unit">$</span><input type="number" data-path="${who}.accounts.${idx}.monthly" style="width:100%; max-width:72px;"></td>
     <td style="text-align:center;"><span class="account-remove" data-who="${who}" data-id="${acc.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span></td>
   </tr>${extra}`;
   }).join('');
@@ -2219,7 +2222,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.7.1';
+const APP_VERSION = '1.7.2';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
