@@ -1026,7 +1026,7 @@ const state = {
     { id:'b9', name:'Vanguard IRA', type:'traditional', balance:14809.77, monthly:0 }
   ]},
   wes: { dob:'1987-01-08', retireAge:65, income:125000, secondaryIncome:0, employerMatch:0, employerMatchType:'dollar', employerMatchPercent:0, accounts:[
-    { id:'w1', name:'Traditional 401(k)', type:'traditional', balance:80000, monthly:730 }
+    { id:'w1', name:'Traditional 401(k)', type:'traditional', balance:0, monthly:0 }
   ]},
   realEstate: {
     primary: { purchasePrice:870000, value:1080090, balance:745057.19, rate:0.05875, piPayment:4660.68, escrow:1090.68, ownership:{brad:0.5, wes:0.5} },
@@ -2222,7 +2222,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.7.2';
+const APP_VERSION = '1.7.3';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
