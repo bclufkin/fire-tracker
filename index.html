@@ -2090,7 +2090,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.6.1';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2152,7 +2152,23 @@ function bindOne(el){
     }
     setPath(state, path, v);
     saveState();
+
+    const focusedPath = path;
+    const isTextLike = (el.tagName==='INPUT' && (el.type==='text' || el.type==='number')) || el.tagName==='TEXTAREA';
+    const selStart = isTextLike ? el.selectionStart : null;
+    const selEnd = isTextLike ? el.selectionEnd : null;
+
     renderActive();
+
+    if(focusedPath){
+      const revived = document.querySelector(`[data-path="${focusedPath}"]`);
+      if(revived){
+        revived.focus();
+        if(selStart!==null && revived.setSelectionRange){
+          try{ revived.setSelectionRange(selStart, selEnd); }catch(e){}
+        }
+      }
+    }
   });
 }
 function bindAll(){
