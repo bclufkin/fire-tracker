@@ -810,6 +810,12 @@
           <h3>Actual vs. projected</h3>
           <div class="sub" style="margin-bottom:0;">Your logged snapshots (dots) against the "keep current pace" projection (line) for the same dates.</div>
         </div>
+      </div>
+      <div class="assumptext" style="margin-top:0; margin-bottom:14px;">
+        <b>How the projected line is calculated:</b> it always uses the "keep current pace" scenario specifically (flat monthly contributions, no growth or cuts), regardless of whichever scenario is selected on the Dashboard or Projection tab. That's a deliberate choice: it gives you one stable, unchanging yardstick to measure against over time, rather than a moving target that shifts every time you experiment with a different scenario elsewhere. The line is your combined joint net worth (investable assets plus real estate equity) at each point using today's account balances, today's contribution amounts, and today's assumptions, compounded forward month by month exactly like the Dashboard's main chart.
+      </div>
+      <div class="rowbar">
+        <div></div>
         <div class="pillgroup" id="history-horizon-pills">
           <div class="pill" data-h="5">5 yrs</div>
           <div class="pill" data-h="10">10 yrs</div>
@@ -2281,7 +2287,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.11.0';
+const APP_VERSION = '1.11.1';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
