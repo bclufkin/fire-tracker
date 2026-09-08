@@ -864,6 +864,22 @@
         <div class="inputwrap" style="flex:1;"><textarea data-path="estate.notes" rows="3" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; font-family:var(--font-body); resize:vertical;"></textarea></div>
       </div>
     </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Executor, trust &amp; final wishes</h3>
+      <div class="sub">The parts of estate planning people tend to skip.</div>
+      <table class="param-table"><tbody>
+        <tr><td>Executor named</td><td class="pval"><input type="checkbox" data-path="estate.hasExecutor"></td></tr>
+        <tr><td>Executor's name</td><td class="pval"><input type="text" data-path="estate.executorName" style="width:150px; text-align:right;"></td></tr>
+        <tr><td>Trust established<span class="hint">if applicable</span></td><td class="pval"><input type="checkbox" data-path="estate.hasTrust"></td></tr>
+        <tr><td>Digital access plan<span class="hint">password manager, key accounts documented for someone else to access</span></td><td class="pval"><input type="checkbox" data-path="estate.hasDigitalPlan"></td></tr>
+        <tr><td>Funeral / final wishes documented</td><td class="pval"><input type="checkbox" data-path="estate.hasFinalWishes"></td></tr>
+        <tr><td>Important documents location noted<span class="hint">will, deed, titles, policies</span></td><td class="pval"><input type="checkbox" data-path="estate.docsLocationNoted"></td></tr>
+      </tbody></table>
+      <div class="assumptext" style="margin-top:12px;">
+        <b>Worth knowing, since you and Wes aren't married:</b> a lot of the automatic legal protections spouses get (inheritance without a will, default medical decision-making authority, spousal Social Security and pension survivor benefits) don't apply to domestic partners by default. A will, healthcare proxy, and beneficiary designations aren't just good practice here, they're doing work that marriage would otherwise do automatically.
+      </div>
+    </div>
   </section>
 
   <!-- ============ PROJECTION ============ -->
@@ -1076,7 +1092,7 @@ const state = {
     { id:'goal3', name:'Library Couch', targetAmount:1500, targetDate:'2027-06-01', currentAmount:0 },
     { id:'goal4', name:'New Windows', targetAmount:8000, targetDate:'2027-09-01', currentAmount:0 }
   ],
-  estate: { hasWill:false, willDate:'', hasPOA:false, hasHealthcareProxy:false, beneficiariesReviewed:false, beneficiariesDate:'', notes:'' }
+  estate: { hasWill:false, willDate:'', hasPOA:false, hasHealthcareProxy:false, beneficiariesReviewed:false, beneficiariesDate:'', notes:'', hasExecutor:false, executorName:'', hasTrust:false, hasDigitalPlan:false, hasFinalWishes:false, docsLocationNoted:false }
 };
 const FRESH_DEFAULTS = JSON.parse(JSON.stringify({
   bradAccounts: state.brad.accounts,
@@ -2287,7 +2303,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.11.1';
+const APP_VERSION = '1.12.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
