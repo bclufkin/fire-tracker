@@ -363,8 +363,8 @@
     <div class="navitem" data-section="projection"><span class="dot"></span>Projection</div>
     <div class="navitem" data-section="methodology"><span class="dot"></span>Methodology</div>
   </div>
+  <button id="reset-inputs-link" class="btn" style="background:transparent; border:1px solid var(--sidebar-ink-dim); color:var(--sidebar-ink-dim); flex:0 0 auto;" title="Clear everything and reload defaults">Reset</button>
 </div>
-<div id="disclaimer">All figures are projections based on the assumptions on the Inputs page. Not financial advice. Edit anything there and every chart updates.</div>
 
 <div id="main">
 
@@ -384,10 +384,9 @@
         <div class="label">Combined investable assets</div>
         <div class="value num" id="stat-assets">n/a</div>
       </div>
-      <div class="stat">
+      <div class="stat" title="Drives this card, Budget, and &quot;income-driven&quot; growth only, not the other scenarios below">
         <div class="label">Combined annual income</div>
         <div class="value num" id="stat-income">n/a</div>
-        <div class="hint" style="margin-top:2px;">Drives this card, Budget, and "income-driven" growth only, not the other scenarios below</div>
       </div>
       <div class="stat">
         <div class="label">Household savings rate</div>
@@ -431,11 +430,11 @@
             <span id="income-driven-note" style="display:none; font-size:11.5px;">extra savings from income outgrowing spending, capped 401(k)/HSA room spills to brokerage</span>
           </div>
         </div>
-      <div class="definitions">
-        <div><i style="background:#A2532E"></i><b>Stop investing</b>No new contributions from today. Assets grow from returns only.</div>
-        <div><i style="background:#3F6B52"></i><b>Keep current pace</b>Monthly investing stays flat at today's amount.</div>
-        <div><i style="background:#5A6B95"></i><b>Increase over time</b>Monthly investing grows each year by the rate above.</div>
-        <div><i style="background:var(--ink-faint)"></i><b>Target needed</b>Portfolio size required to fund that spending at a 4% withdrawal rate.</div>
+      <div class="legend">
+        <span title="No new contributions from today. Assets grow from returns only."><span class="swatch" style="background:#A2532E"></span>Stop investing</span>
+        <span title="Monthly investing stays flat at today's amount."><span class="swatch" style="background:#3F6B52"></span>Keep current pace</span>
+        <span title="Monthly investing grows each year by the rate above."><span class="swatch" style="background:#5A6B95"></span>Increase over time</span>
+        <span title="Portfolio size required to fund that spending at a 4% withdrawal rate."><span class="dash"></span>Target needed</span>
       </div>
       <div class="chartwrap chartbig"><canvas id="chart-networth"></canvas></div>
     </div>
@@ -493,7 +492,7 @@
   <section class="section" id="section-inputs">
     <div class="pagehead">
       <h1>Inputs</h1>
-      <p>Everything here is live. Change a number and the Dashboard and Projection pages update immediately. Everything you enter is saved automatically in this browser, so it's still here next time you open this page even after closing the tab. <a href="#" id="reset-inputs-link" style="color:var(--rust);">Reset all inputs to defaults</a></p>
+      <p>Everything here is live. Change a number and the Dashboard and Projection pages update immediately. Everything you enter is saved automatically in this browser, so it's still here next time you open this page even after closing the tab.</p>
       <div id="save-indicator" style="font-size:12px; color:var(--green); font-weight:700; height:16px; margin-top:6px; opacity:0; transition:opacity .3s;">&#10003; Saved</div>
     </div>
 
@@ -1067,7 +1066,10 @@ const state = {
   netWorthHistory: [],
   sharedScenario: 'increase',
   goals: [
-    { id:'goal1', name:'Roof replacement', targetAmount:20000, targetDate:'2028-06-01', currentAmount:0 }
+    { id:'goal1', name:'Roof replacement', targetAmount:20000, targetDate:'2028-06-01', currentAmount:0 },
+    { id:'goal2', name:"Wes's 40th Birthday", targetAmount:2000, targetDate:'2027-01-08', currentAmount:0 },
+    { id:'goal3', name:'Library Couch', targetAmount:1500, targetDate:'2027-06-01', currentAmount:0 },
+    { id:'goal4', name:'New Windows', targetAmount:8000, targetDate:'2027-09-01', currentAmount:0 }
   ],
   estate: { hasWill:false, willDate:'', hasPOA:false, hasHealthcareProxy:false, beneficiariesReviewed:false, beneficiariesDate:'', notes:'' }
 };
@@ -1078,7 +1080,8 @@ const FRESH_DEFAULTS = JSON.parse(JSON.stringify({
   bradEmployerMatch: state.brad.employerMatch,
   bradEmployerMatchType: state.brad.employerMatchType,
   bradEmployerMatchPercent: state.brad.employerMatchPercent,
-  realEstate: state.realEstate
+  realEstate: state.realEstate,
+  goals: state.goals
 }));
 
 function ageMonthsFromDob(dobStr, today){
@@ -2243,7 +2246,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.9.0';
+const APP_VERSION = '1.9.1';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2288,6 +2291,17 @@ function loadState(){
       state.brad.employerMatchPercent = FRESH_DEFAULTS.bradEmployerMatchPercent;
       state.realEstate = JSON.parse(JSON.stringify(FRESH_DEFAULTS.realEstate));
       localStorage.setItem(ACCOUNTS_MIGRATION_KEY, '1');
+      saveState();
+    }
+  }catch(e){}
+  try{
+    const GOALS_MIGRATION_KEY = 'fireTrackerMigration_newGoalsV1';
+    if(!localStorage.getItem(GOALS_MIGRATION_KEY)){
+      const existingIds = new Set(state.goals.map(g=>g.id));
+      FRESH_DEFAULTS.goals.forEach(g=>{
+        if(!existingIds.has(g.id)) state.goals.push(JSON.parse(JSON.stringify(g)));
+      });
+      localStorage.setItem(GOALS_MIGRATION_KEY, '1');
       saveState();
     }
   }catch(e){}
