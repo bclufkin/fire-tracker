@@ -686,18 +686,16 @@
       <div class="rowbar">
         <div>
           <h3>Payoff strategy</h3>
-          <div class="sub">Avalanche targets the highest interest rate first (saves the most money). Snowball targets the smallest balance first (faster early wins).</div>
+          <div class="sub">Avalanche targets the highest interest rate first (saves the most money). Snowball targets the smallest balance first (faster early wins). Manual uses the priority number you set on each debt below.</div>
         </div>
         <div class="pillgroup" id="debt-strategy-pills">
           <div class="pill active" data-strat="avalanche" title="Extra payments target the highest interest rate first.">Avalanche</div>
           <div class="pill" data-strat="snowball" title="Extra payments target the smallest balance first.">Snowball</div>
+          <div class="pill" data-strat="manual" title="Extra payments target debts in the priority order you set.">Manual order</div>
           <div class="pill" data-strat="minOnly" title="Pay only the required minimum on everything. No extra, no acceleration.">Minimums only</div>
         </div>
       </div>
-      <div style="min-height:34px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <div id="debt-extra-wrap" style="font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:5px; width:fit-content;">
-          extra $<input type="number" id="debt-extra-input" data-path="debtExtra" style="width:70px;"> / mo
-        </div>
+      <div style="min-height:34px; margin-bottom:6px; display:flex; justify-content:flex-end;">
         <div class="pillgroup" id="debt-horizon-pills">
           <div class="pill" data-h="1">1 yr</div>
           <div class="pill" data-h="3">3 yrs</div>
@@ -719,7 +717,7 @@
       <div class="tablewrap" style="max-height:none;">
         <table style="table-layout:auto;">
           <thead>
-            <tr><th style="text-align:left;">Debt</th><th>Balance</th><th>Rate</th><th>Min payment</th><th>Actual payment</th><th>Payoff order</th><th>Payoff date</th><th>Interest paid</th><th></th></tr>
+            <tr><th style="text-align:left;">Debt</th><th>Balance</th><th>Rate</th><th>Min payment</th><th>Actual payment</th><th>Extra</th><th id="debt-priority-th" style="display:none;">Priority</th><th>Payoff order</th><th>Payoff date</th><th>Interest paid</th><th></th></tr>
           </thead>
           <tbody id="debt-tbody"></tbody>
         </table>
@@ -1056,10 +1054,10 @@ const state = {
   emergencyFund: { targetMonths:6, currentBalance:0 },
   insurance: { life:false, disability:false, umbrella:false },
   debts: [
-    { id:'subaru', name:'Subaru Loan', balance:0, rate:0.06, minPayment:644.76, payment:644.76 },
-    { id:'volvo', name:'Volvo Loan', balance:0, rate:0.06, minPayment:300.00, payment:300.00 },
-    { id:'studentBrad', name:"Student Loan (Brad)", balance:0, rate:0.05, minPayment:435.13, payment:435.13 },
-    { id:'studentWes', name:"Student Loan (Wes)", balance:0, rate:0.05, minPayment:1723.00, payment:1723.00 }
+    { id:'subaru', name:'Subaru Loan', balance:0, rate:0.06, minPayment:644.76, payment:644.76, extra:0, priority:1 },
+    { id:'volvo', name:'Volvo Loan', balance:0, rate:0.06, minPayment:300.00, payment:300.00, extra:0, priority:2 },
+    { id:'studentBrad', name:"Student Loan (Brad)", balance:0, rate:0.05, minPayment:435.13, payment:435.13, extra:0, priority:3 },
+    { id:'studentWes', name:"Student Loan (Wes)", balance:0, rate:0.05, minPayment:1723.00, payment:1723.00, extra:0, priority:4 }
   ],
   debtStrategy: 'avalanche',
   debtExtra: 0,
@@ -1618,8 +1616,12 @@ function runDebtPayoff(){
       if(d.remaining<=0.01) d.paidOffMonth = month;
     });
     if(!minOnly){
-      let pool = state.debtExtra + debts.filter(d=>d.remaining<=0.01 && d.paidOffMonth!==null && d.paidOffMonth<month).reduce((s,d)=>s+d.payment,0);
-      const targets = debts.filter(d=>d.remaining>0.01).sort((a,b)=> strategy==='avalanche' ? b.rate-a.rate : a.remaining-b.remaining);
+      let pool = debts.reduce((s,d)=>s+(d.extra||0),0) + debts.filter(d=>d.remaining<=0.01 && d.paidOffMonth!==null && d.paidOffMonth<month).reduce((s,d)=>s+d.payment+(d.extra||0),0);
+      const targets = debts.filter(d=>d.remaining>0.01).sort((a,b)=>{
+        if(strategy==='avalanche') return b.rate-a.rate;
+        if(strategy==='snowball') return a.remaining-b.remaining;
+        return (a.priority??99)-(b.priority??99);
+      });
       for(const d of targets){
         if(pool<=0) break;
         const applied = Math.min(pool, d.remaining);
@@ -1638,7 +1640,12 @@ function runDebtPayoff(){
   const order = state.debts.map(d=>d.id).map(id=>{
     const dd = debts.find(x=>x.id===id);
     return dd;
-  }).sort((a,b)=> strategy==='avalanche' ? b.rate-a.rate : a.balance-b.balance);
+  }).sort((a,b)=>{
+    if(strategy==='avalanche') return b.rate-a.rate;
+    if(strategy==='snowball') return a.balance-b.balance;
+    if(strategy==='manual') return (a.priority??99)-(b.priority??99);
+    return 0;
+  });
   return { debts, history, month, totalToday, totalInterest, weightedRate, debtFreeDate, payoffOrder: order };
 }
 
@@ -1911,6 +1918,8 @@ function renderDebt(){
       <td class="num"><input type="number" step="0.01" data-path="debts.${idx}.rate" data-pct="1" style="width:64px;"><span class="unit">%</span></td>
       <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.minPayment" style="width:76px;"></td>
       <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.payment" style="width:76px;"></td>
+      <td class="num"><span class="unit">$</span><input type="number" data-path="debts.${idx}.extra" style="width:64px;"></td>
+      <td class="debt-priority-td num" style="display:none;"><input type="number" data-path="debts.${idx}.priority" style="width:44px;"></td>
       <td style="text-align:center;">#${rank}</td>
       <td style="text-align:center;">${payoffLabel}</td>
       <td class="num">${fmt$(d.totalInterest)}</td>
@@ -1918,6 +1927,8 @@ function renderDebt(){
     </tr>`;
   }).join('');
   document.querySelectorAll('#debt-tbody [data-path]').forEach(bindOne);
+  document.getElementById('debt-priority-th').style.display = state.debtStrategy==='manual' ? '' : 'none';
+  document.querySelectorAll('.debt-priority-td').forEach(td=> td.style.display = state.debtStrategy==='manual' ? '' : 'none');
   document.querySelectorAll('.debt-remove').forEach(el=>{
     el.addEventListener('click', ()=>{
       state.debts = state.debts.filter(d=>d.id!==el.dataset.id);
@@ -2246,7 +2257,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.9.1';
+const APP_VERSION = '1.10.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2305,7 +2316,11 @@ function loadState(){
       saveState();
     }
   }catch(e){}
-  state.debts.forEach(d=>{ if(d.minPayment===undefined || d.minPayment===null) d.minPayment = d.payment; });
+  state.debts.forEach((d,i)=>{
+    if(d.minPayment===undefined || d.minPayment===null) d.minPayment = d.payment;
+    if(d.extra===undefined || d.extra===null) d.extra = 0;
+    if(d.priority===undefined || d.priority===null) d.priority = i+1;
+  });
 }
 
 let suppressAutoSelect = false;
@@ -2419,7 +2434,6 @@ document.getElementById('debt-strategy-pills').addEventListener('click', (e)=>{
   document.querySelectorAll('#debt-strategy-pills .pill').forEach(p=>p.classList.remove('active'));
   pill.classList.add('active');
   state.debtStrategy = pill.dataset.strat;
-  document.getElementById('debt-extra-wrap').style.display = (state.debtStrategy==='minOnly') ? 'none' : 'flex';
   saveState();
   renderDebt();
 });
@@ -2456,7 +2470,8 @@ document.getElementById('history-horizon-pills').addEventListener('click', (e)=>
   renderHistory();
 });
 document.getElementById('debt-add-btn').addEventListener('click', ()=>{
-  state.debts.push({ id:'debt'+Date.now(), name:'New debt', balance:0, rate:0.06, minPayment:0, payment:0 });
+  const maxPriority = state.debts.reduce((m,d)=>Math.max(m,d.priority||0),0);
+  state.debts.push({ id:'debt'+Date.now(), name:'New debt', balance:0, rate:0.06, minPayment:0, payment:0, extra:0, priority:maxPriority+1 });
   saveState();
   renderDebt();
 });
