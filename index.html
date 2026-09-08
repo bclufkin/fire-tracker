@@ -248,6 +248,7 @@
   .personblock .fieldrow:hover{ background:rgba(255,255,255,0.5); }
   .personblock .acct-table thead tr th{ background:var(--ink); }
   .acct-add-btn{ font-size:11.5px; padding:5px 12px; margin-top:6px; }
+  .cat-swatch{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:middle; }
   .assumptext{ font-size:12px; color:var(--ink-soft); background:var(--gold-wash); border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:11px 15px; margin-top:14px; line-height:1.65; }
   .assumptext b{ color:var(--ink); }
   .acct-table{ width:100%; table-layout:fixed; border-collapse:collapse; margin:6px 0 12px; font-size:11.5px; }
@@ -1032,20 +1033,20 @@ const state = {
   assumptions: { investmentReturn:0.07, homeAppreciation:0.035, inflation:0.03, swr:0.04, incomeGrowth:0.03, contributionGrowth:0.03, returnStdev:0.15, planToAge:95, cap401k:23500, capIRA:7000, capHSA:4300, capHSAFamily:8550, hsaCoverageType:'family', rothPhaseoutStart:150000, rothPhaseoutEnd:165000, lifestyleCreepRate:0.01 },
   contributionMode: 'incomeDriven',
   expenses: [
-    { id:'homeIns', name:'Home insurance', amount:184.50, category:'essential' },
-    { id:'autoIns', name:'Auto insurance', amount:270.69, category:'essential' },
-    { id:'parking', name:'Work parking', amount:50, category:'essential' },
-    { id:'gas', name:'Vehicle gas', amount:70, category:'essential' },
-    { id:'healthPrem', name:'Health premiums', amount:135.52, category:'essential' },
-    { id:'internet', name:'Internet', amount:30, category:'essential' },
-    { id:'utilGas', name:'Gas (utility)', amount:131.65, category:'essential' },
-    { id:'energy', name:'Energy', amount:234.98, category:'essential' },
-    { id:'water', name:'Water', amount:107.11, category:'essential' },
-    { id:'pest', name:'Pest control', amount:28.33, category:'essential' },
-    { id:'cell', name:'Cell phone', amount:45, category:'essential' },
-    { id:'newton', name:'Newton (pet)', amount:300, category:'essential' },
-    { id:'roof', name:'Roof fund', amount:1733.33, category:'essential' },
-    { id:'entertainment', name:'Entertainment', amount:363.65, category:'discretionary' }
+    { id:'homeIns', name:'Home insurance', amount:184.50, category:'insurance' },
+    { id:'autoIns', name:'Auto insurance', amount:270.69, category:'insurance' },
+    { id:'parking', name:'Work parking', amount:50, category:'transportation' },
+    { id:'gas', name:'Vehicle gas', amount:70, category:'transportation' },
+    { id:'healthPrem', name:'Health premiums', amount:135.52, category:'healthcare' },
+    { id:'internet', name:'Internet', amount:30, category:'utilities' },
+    { id:'utilGas', name:'Gas (utility)', amount:131.65, category:'utilities' },
+    { id:'energy', name:'Energy', amount:234.98, category:'utilities' },
+    { id:'water', name:'Water', amount:107.11, category:'utilities' },
+    { id:'pest', name:'Pest control', amount:28.33, category:'housing' },
+    { id:'cell', name:'Cell phone', amount:45, category:'utilities' },
+    { id:'newton', name:'Newton (pet)', amount:300, category:'personalcare' },
+    { id:'roof', name:'Roof fund', amount:1733.33, category:'housing' },
+    { id:'entertainment', name:'Entertainment', amount:363.65, category:'entertainment' }
   ],
   fire: { chubbyMultiplier:1.25, fatMultiplier:1.5, baristaIncome:0 },
   futureIncome: { pensionWes:0, pensionStartAge:62, ssBrad:0, ssWes:0, ssStartAge:67 },
@@ -1151,8 +1152,28 @@ function computedTraditionalFraction(){
   const total = personAssets('brad') + personAssets('wes');
   return total>0 ? tradTotal/total : 0;
 }
-function itemizedMonthly(category){
-  return state.expenses.filter(e=>e.category===category).reduce((s,e)=>s+e.amount,0);
+const EXPENSE_CATEGORIES = [
+  ['housing','Housing','essential','#2F4A3D'],
+  ['utilities','Utilities','essential','#3D7A8C'],
+  ['food','Food / Groceries','essential','#B8935A'],
+  ['transportation','Transportation','essential','#5A6B95'],
+  ['insurance','Insurance','essential','#A2532E'],
+  ['healthcare','Healthcare','essential','#C1614A'],
+  ['personalcare','Personal Care','essential','#8A6BA8'],
+  ['subscriptions','Subscriptions','discretionary','#C9A227'],
+  ['diningout','Dining Out','discretionary','#D17A47'],
+  ['entertainment','Entertainment','discretionary','#5B9BD5'],
+  ['travel','Travel','discretionary','#3FA796'],
+  ['shopping','Shopping','discretionary','#B85C7A'],
+  ['giving','Giving / Charity','discretionary','#8FA894'],
+  ['other_essential','Other (essential)','essential','#7C8A7E'],
+  ['other_discretionary','Other (discretionary)','discretionary','#C4A484']
+];
+function expenseCategoryMeta(cat){
+  return EXPENSE_CATEGORIES.find(c=>c[0]===cat) || EXPENSE_CATEGORIES.find(c=>c[0]==='other_essential');
+}
+function itemizedMonthly(fireType){
+  return state.expenses.filter(e=>expenseCategoryMeta(e.category)[2]===fireType).reduce((s,e)=>s+e.amount,0);
 }
 function essentialMonthlyTotal(){
   return itemizedMonthly('essential') + state.realEstate.primary.piPayment + state.realEstate.primary.escrow;
@@ -1823,6 +1844,7 @@ function buildSankeySVG(sources, hubLabel, dests, W, H){
   const hub = { x: hubX, y:0, h: total*scale, value: total };
 
   let svg = `<svg viewBox="0 0 ${W} ${H+30}" width="100%" style="max-width:100%;">`;
+  svg += `<style>.sankey-flow{transition:opacity .15s;cursor:pointer;} .sankey-flow:hover{opacity:0.65 !important;} .sankey-node:hover{opacity:0.85;cursor:pointer;}</style>`;
   svg += `<text x="${leftX}" y="-6" class="sankey-lbl"></text>`;
 
   function flowPath(x1,y1,h1,x2,y2,h2){
@@ -1835,7 +1857,7 @@ function buildSankeySVG(sources, hubLabel, dests, W, H){
   src.forEach(n=>{
     const flowH = n.h;
     const p = flowPath(n.x+nodeW, n.y, flowH, hub.x, hubOffsetIn, flowH);
-    svg += `<path d="${p}" fill="${n.color||'#3F6B52'}" opacity="0.28"/>`;
+    svg += `<path class="sankey-flow" d="${p}" fill="${n.color||'#3F6B52'}" opacity="0.28"><title>${n.label}: ${fmt$full(n.value)}/mo</title></path>`;
     hubOffsetIn += flowH + (src.length>1 ? pad*0 : 0);
   });
 
@@ -1843,15 +1865,15 @@ function buildSankeySVG(sources, hubLabel, dests, W, H){
   dst.forEach(n=>{
     const flowH = n.h;
     const p = flowPath(hub.x+nodeW, hubOffsetOut, flowH, n.x, n.y, flowH);
-    svg += `<path d="${p}" fill="${n.color||'#B8935A'}" opacity="0.35"/>`;
+    svg += `<path class="sankey-flow" d="${p}" fill="${n.color||'#B8935A'}" opacity="0.35"><title>${n.label}: ${fmt$full(n.value)}/mo</title></path>`;
     hubOffsetOut += flowH;
   });
 
   src.forEach(n=>{
-    svg += `<rect x="${n.x}" y="${n.y}" width="${nodeW}" height="${n.h}" fill="${n.color||'#3F6B52'}" rx="2"/>`;
+    svg += `<rect class="sankey-node" x="${n.x}" y="${n.y}" width="${nodeW}" height="${n.h}" fill="${n.color||'#3F6B52'}" rx="2"><title>${n.label}: ${fmt$full(n.value)}/mo</title></rect>`;
     svg += `<text x="${n.x+nodeW+8}" y="${n.y+n.h/2+4}" font-size="12" fill="#1E3128" font-family="Lato,sans-serif">${n.label} &#183; ${fmt$(n.value)}</text>`;
   });
-  svg += `<rect x="${hub.x}" y="${hub.y}" width="${nodeW}" height="${hub.h}" fill="#1E3128" rx="2"/>`;
+  svg += `<rect x="${hub.x}" y="${hub.y}" width="${nodeW}" height="${hub.h}" fill="#1E3128" rx="2"><title>Total income: ${fmt$full(hub.value)}/mo</title></rect>`;
   svg += `<text x="${hub.x+nodeW/2}" y="${hub.h+16}" font-size="12" fill="#1E3128" font-family="Lato,sans-serif" text-anchor="middle" font-weight="700">Total income &#183; ${fmt$(hub.value)}/mo</text>`;
   dst.forEach(n=>{
     svg += `<rect x="${n.x}" y="${n.y}" width="${nodeW}" height="${n.h}" fill="${n.color||'#B8935A'}" rx="2"/>`;
@@ -2101,16 +2123,15 @@ function renderHistory(){
 }
 
 function renderExpenseTable(){
+  const catOptions = sel => EXPENSE_CATEGORIES.map(([v,label])=>`<option value="${v}"${sel===v?' selected':''}>${label}</option>`).join('');
   document.getElementById('expense-tbody').innerHTML = state.expenses.map(exp=>{
     const idx = state.expenses.indexOf(exp);
+    const meta = expenseCategoryMeta(exp.category);
     return `<tr>
-      <td style="text-align:left;"><input type="text" data-path="expenses.${idx}.name" style="width:170px; text-align:left; font-weight:600;"></td>
+      <td style="text-align:left;"><span class="cat-swatch" style="background:${meta[3]}"></span><input type="text" data-path="expenses.${idx}.name" style="width:150px; text-align:left; font-weight:600;"></td>
       <td class="num"><span class="unit">$</span><input type="number" data-path="expenses.${idx}.amount" style="width:90px;"></td>
       <td style="text-align:center;">
-        <select data-path="expenses.${idx}.category">
-          <option value="essential">Essential</option>
-          <option value="discretionary">Discretionary</option>
-        </select>
+        <select data-path="expenses.${idx}.category" style="width:150px;">${catOptions(exp.category)}</select>
       </td>
       <td style="text-align:center;"><span class="debt-remove expense-remove" data-id="${exp.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span></td>
     </tr>`;
@@ -2147,26 +2168,29 @@ function renderBudget(){
   ].map(([label,value])=>`<div class="stat"><div class="label">${label}</div><div class="value num">${value}</div></div>`).join('');
 
   const sources = [
-    { label:"Brad's salary", value:bradM, color:'#3F6B52' },
+    { label:"Brad's salary", value:bradM, color:'#2F4A3D' },
     { label:"Wes's salary", value:wesM, color:'#5A6B95' },
     { label:'Rental income', value:rentM, color:'#B8935A' }
   ].filter(s=>s.value>0);
 
+  const categoryTotals = {};
+  state.expenses.forEach(e=>{ categoryTotals[e.category] = (categoryTotals[e.category]||0)+e.amount; });
+  categoryTotals.housing = (categoryTotals.housing||0) + state.realEstate.primary.piPayment + state.realEstate.primary.escrow;
+
   const dests = [
     { label:'Taxes (est.)', value:taxes, color:'#A2532E' },
-    { label:'Essential living', value:essential, color:'#5C7A63' },
-    { label:'Discretionary', value:discretionary, color:'#8FA894' },
-    { label:'Debt payments', value:debtPay, color:'#A2532E' },
+    ...EXPENSE_CATEGORIES.map(([v,label,type,color])=>({ label, value:categoryTotals[v]||0, color })),
+    { label:'Debt payments', value:debtPay, color:'#8C3F27' },
     { label:'Investing', value:investing, color:'#3F6B52' },
     { label:'Rental costs', value:rentalCosts, color:'#5A6B95' },
-    surplus>=0 ? { label:'Surplus', value:surplus, color:'#B8935A' } : { label:'Shortfall', value:Math.abs(surplus), color:'#A2532E' }
+    surplus>=0 ? { label:'Surplus', value:surplus, color:'#3FA796' } : { label:'Shortfall', value:Math.abs(surplus), color:'#A2532E' }
   ].filter(d=>d.value>0.5);
 
-  document.getElementById('sankey-wrap').innerHTML = buildSankeySVG(sources, 'Total income', dests, 760, Math.max(280, dests.length*46));
+  document.getElementById('sankey-wrap').innerHTML = buildSankeySVG(sources, 'Total income', dests, 780, Math.max(320, dests.length*40));
 
   const annualize = v => v*12;
   document.getElementById('budget-tbody').innerHTML = dests.map(d=>{
-    return `<tr><td style="text-align:left;"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${d.color};margin-right:7px;"></span>${d.label}</td>
+    return `<tr><td style="text-align:left;"><span class="cat-swatch" style="background:${d.color}"></span>${d.label}</td>
       <td class="num">${fmt$full(d.value)}</td><td class="num">${fmt$full(annualize(d.value))}</td>
       <td class="num">${incomeTotal>0 ? (d.value/incomeTotal*100).toFixed(1)+'%' : 'n/a'}</td></tr>`;
   }).join('');
@@ -2257,7 +2281,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.10.0';
+const APP_VERSION = '1.11.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2316,6 +2340,10 @@ function loadState(){
       saveState();
     }
   }catch(e){}
+  state.expenses.forEach(e=>{
+    if(e.category==='essential') e.category = 'other_essential';
+    else if(e.category==='discretionary') e.category = 'other_discretionary';
+  });
   state.debts.forEach((d,i)=>{
     if(d.minPayment===undefined || d.minPayment===null) d.minPayment = d.payment;
     if(d.extra===undefined || d.extra===null) d.extra = 0;
