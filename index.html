@@ -276,6 +276,40 @@
     background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:1px 6px;
     font-size:12px; color:var(--teal-dark); font-family:Menlo,Consolas,monospace;
   }
+  .method-toolbar{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:10px 14px; margin-bottom:16px;
+  }
+  #method-filter-pills .pill[data-cat]:not([data-cat="all"])::before{
+    content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--dot); margin-right:5px;
+  }
+  .method-section{
+    border:1px solid var(--line); border-left-width:4px; border-radius:0 10px 10px 0;
+    background:var(--paper); margin-bottom:10px; box-shadow:0 1px 3px rgba(30,49,40,0.05);
+  }
+  .method-section summary{
+    cursor:pointer; padding:13px 16px; list-style:none; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .method-section summary::-webkit-details-marker{ display:none; }
+  .method-section summary::before{
+    content:'+'; font-family:var(--font-head); font-weight:700; font-size:15px; color:var(--ink-faint);
+    width:16px; text-align:center; flex:0 0 auto;
+  }
+  .method-section[open] summary::before{ content:'\2212'; }
+  .method-cat-badge{
+    font-size:9px; text-transform:uppercase; letter-spacing:.05em; font-weight:700;
+    padding:3px 9px; border-radius:99px; color:#fff; flex:0 0 auto;
+  }
+  .method-title{ font-family:var(--font-head); font-weight:700; font-size:13.5px; color:var(--ink); }
+  .method-summary{ font-size:11.5px; color:var(--ink-faint); margin-left:auto; text-align:right; max-width:320px; }
+  .method-section[open] .method-summary{ display:none; }
+  .method-body{ padding:0 18px 16px 46px; font-size:13px; line-height:1.6; color:var(--ink-soft); }
+  .method-body h3{ display:none; }
+  .method-section.method-hidden{ display:none; }
+  @media (max-width:700px){
+    .method-summary{ display:none; }
+    .method-body{ padding-left:16px; }
+  }
 
   /* Chart wrappers */
   .chartwrap{ position:relative; width:100%; }
@@ -929,19 +963,45 @@
   <section class="section" id="section-methodology">
     <div class="pagehead">
       <h1>Methodology</h1>
-      <p>Exactly how every number on this site is calculated, and where the simplifications are.</p>
+      <p>Exactly how every number on this site is calculated, and where the simplifications are. Click any topic to expand it.</p>
     </div>
 
-    <div class="card">
-      <h3>Net worth projection engine</h3>
-      <div class="sub" style="margin-bottom:0;">
-        Every projection now runs month by month, not year by year. Each month, each person's investable assets compound at your assumed investment return (converted to a monthly-equivalent rate) and that month's contribution, including any employer match and any secondary/side income folded into the income-driven calculation, is added. Contributions stop the month that person reaches their target retirement age, not just the year. Real estate uses standard monthly loan amortization on the actual rate and payment you enter, and the home/rental value grows at your assumed appreciation rate, also converted to a monthly-equivalent rate. Home equity on the primary residence is split 50/50 between you; the rental condo's equity goes entirely to Wes, matching sole ownership. Every projection, including the FIRE cards, Monte Carlo, and the full table, runs out to your "plan to age" setting: specifically, however many months it takes for the later of the two of you to reach that age. The Projection tab's table still displays one row per year for readability, sampled from this monthly engine, but achievement dates everywhere else (FIRE cards, Monte Carlo) are precise to the month.
+    <div class="method-toolbar">
+      <div class="pillgroup" id="method-filter-pills">
+        <div class="pill active" data-cat="all">All</div>
+        <div class="pill" data-cat="engine" style="--dot:#2F4A3D;">Engine</div>
+        <div class="pill" data-cat="fire" style="--dot:#B8935A;">FIRE Math</div>
+        <div class="pill" data-cat="tax" style="--dot:#3D7A8C;">Tax</div>
+        <div class="pill" data-cat="risk" style="--dot:#5A6B95;">Risk</div>
+        <div class="pill" data-cat="debt" style="--dot:#A2532E;">Debt &amp; Budget</div>
+        <div class="pill" data-cat="tracking" style="--dot:#3FA796;">Tracking</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="method-expand-all" style="background:var(--teal-dark);">Expand all</button>
+        <button class="btn" id="method-collapse-all" style="background:var(--ink-faint);">Collapse all</button>
       </div>
     </div>
 
-    <div class="card" style="margin-top:16px;">
-      <h3>The three contribution scenarios</h3>
-      <div class="sub" style="margin-bottom:0;">
+      <details class="method-section" data-cat="engine" style="border-left-color:#2F4A3D;">
+        <summary>
+          <span class="method-cat-badge" style="background:#2F4A3D;">Engine</span>
+          <span class="method-title">Net worth projection engine</span>
+          <span class="method-summary">How your money grows, month by month, from today until your plan horizon.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
+        Every projection now runs month by month, not year by year. Each month, each person's investable assets compound at your assumed investment return (converted to a monthly-equivalent rate) and that month's contribution, including any employer match and any secondary/side income folded into the income-driven calculation, is added. Contributions stop the month that person reaches their target retirement age, not just the year. Real estate uses standard monthly loan amortization on the actual rate and payment you enter, and the home/rental value grows at your assumed appreciation rate, also converted to a monthly-equivalent rate. Home equity on the primary residence is split 50/50 between you; the rental condo's equity goes entirely to Wes, matching sole ownership. Every projection, including the FIRE cards, Monte Carlo, and the full table, runs out to your "plan to age" setting: specifically, however many months it takes for the later of the two of you to reach that age. The Projection tab's table still displays one row per year for readability, sampled from this monthly engine, but achievement dates everywhere else (FIRE cards, Monte Carlo) are precise to the month.
+      </div>
+        </div>
+      </details>
+      <details class="method-section" data-cat="engine" style="border-left-color:#2F4A3D;">
+        <summary>
+          <span class="method-cat-badge" style="background:#2F4A3D;">Engine</span>
+          <span class="method-title">The three contribution scenarios</span>
+          <span class="method-summary">Three ways to model how much you keep contributing, and why they exist.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         <b>Stop investing:</b> contributions are set to zero starting today; assets grow from market returns alone.<br>
         <b>Keep current pace:</b> each of you keeps contributing your current monthly amount, flat, every year, until you retire.<br>
         <b>Increase over time:</b> your monthly contribution grows, using one of two modes you choose next to the pill:
@@ -953,85 +1013,140 @@
       <div class="sub" style="margin-bottom:0; margin-top:8px;">
         All contribution schedules use the same investment return assumption; they differ only in how much gets contributed.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>FIRE numbers, inflation, and "today's dollars"</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="fire" style="border-left-color:#B8935A;">
+        <summary>
+          <span class="method-cat-badge" style="background:#B8935A;">FIRE Math</span>
+          <span class="method-title">FIRE numbers, inflation, and "today's dollars"</span>
+          <span class="method-summary">Why $109,500 today isn't the same dollar amount you'll actually need later.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         Every spending target you enter (Lean, Traditional, Chubby, Fat, Barista's offset) is in today's purchasing power. For a given future year, that target is inflated forward: <code>future spending = today's spending &times; (1 + inflation)^years</code>. Any pension or Social Security income is inflated the same way and subtracted first. What's left is divided by the tax-adjusted safe withdrawal rate (see Tax treatment below) to get that year's required nest egg. Your projected nominal assets are compared against that inflated, tax-adjusted number, not against the plain today's-dollars figure.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Coast FIRE</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="fire" style="border-left-color:#B8935A;">
+        <summary>
+          <span class="method-cat-badge" style="background:#B8935A;">FIRE Math</span>
+          <span class="method-title">Coast FIRE</span>
+          <span class="method-summary">A different question than the other four: could you stop saving today and still get there?</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         Calculated differently from the other four. First, the Traditional FIRE number is projected forward to the year Wes turns 65 (inflated spending, minus other income, divided by the tax-adjusted SWR). That future number is then discounted back to today at your investment return rate: <code>coast number = future Traditional number &divide; (1 + return)^years to Wes's retirement</code>. That's the lump sum that, left alone with zero further contributions, would grow to fully fund Traditional FIRE by age 65 on market returns alone. Progress and "achieved" dates for Coast compare your assets against this shrinking-in-time-remaining bar, recalculated for every year in the projection.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Tax treatment (simplified)</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="tax" style="border-left-color:#3D7A8C;">
+        <summary>
+          <span class="method-cat-badge" style="background:#3D7A8C;">Tax</span>
+          <span class="method-title">Tax treatment (simplified)</span>
+          <span class="method-summary">A simplified stand-in for real tax brackets, used only for retirement withdrawals.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         This is a gross-up, not real bucket-by-bucket account tracking. The pre-tax share is computed automatically from your account balances on the Inputs tab (traditional 401(k)/IRA balances &divide; total investable assets). "Effective tax rate" and "state tax rate" are added together into one blended rate you'd expect to pay on withdrawals from the pre-tax share. Every required nest egg is then inflated to cover that expected tax drag: <code>tax-adjusted SWR = SWR &times; (1 &minus; pre-tax share &times; (federal rate + state rate))</code>, and that adjusted rate is used everywhere in place of the raw safe withdrawal rate. The same combined federal-plus-state rate is also applied to income in the Budget tab's tax estimate. Filing status is currently stored and displayed only. It doesn't change any calculation yet, since this tool doesn't model tax brackets. It does not model Roth conversion ladders or account-specific withdrawal ordering either.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Health care bridge</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="risk" style="border-left-color:#5A6B95;">
+        <summary>
+          <span class="method-cat-badge" style="background:#5A6B95;">Risk</span>
+          <span class="method-title">Health care bridge</span>
+          <span class="method-summary">The gap between retiring and Medicare, and what it costs.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         If either of you retires before 65, your entered monthly premium (inflated each year) is added on top of that year's spending target, only for the years between your retirement age and 65. At 65, it's assumed Medicare takes over and the premium drops out.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Monte Carlo simulation</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="risk" style="border-left-color:#5A6B95;">
+        <summary>
+          <span class="method-cat-badge" style="background:#5A6B95;">Risk</span>
+          <span class="method-title">Monte Carlo simulation</span>
+          <span class="method-summary">300 randomized futures instead of one smooth line, to show a range of outcomes.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         Runs 300 independent simulated futures, month by month. Each month gets its own random investment return drawn from a normal distribution generated with a standard Box-Muller transform, centered on your assumed return converted to a monthly-equivalent mean, with the monthly standard deviation set by scaling your volatility input by the square root of 12 (the standard way to convert annual volatility to monthly). That random return only applies to each person's growable balance (everything except checking, savings, and the liquid portion of HSAs); cash balances are carried forward flat with no growth and no volatility, same as everywhere else in the tool. Both of your growable balances share the same randomly drawn return in a given month in a given simulation, since a real market month doesn't move your accounts independently. Contributions follow whichever scenario pill is selected on the Dashboard, including the flat-rate or income-driven mode if "Increase over time" is active, and split into growable versus cash the same way the main projection does. For each FIRE type, "chance of success" is the share of the 300 simulations where combined assets crossed that type's (inflated, tax-adjusted) required number within the plan horizon. "Typical month" is the median month and year among only the simulations that succeeded. The shaded band on the chart spans the 10th to 90th percentile of simulated net worth at each point; the dark line is the median (50th percentile) path.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Debt payoff (avalanche, snowball &amp; minimums only)</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="debt" style="border-left-color:#A2532E;">
+        <summary>
+          <span class="method-cat-badge" style="background:#A2532E;">Debt &amp; Budget</span>
+          <span class="method-title">Debt payoff (avalanche, snowball &amp; minimums only)</span>
+          <span class="method-summary">How Avalanche, Snowball, Manual, and Minimums-only actually work.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         Simulated month by month. Each month, every debt accrues interest on its remaining balance at its stated annual rate divided by 12, then a payment is applied. Two separate payment figures are tracked per debt: the required minimum and what you're actually paying, which can be higher if you're already voluntarily overpaying something. Under <b>avalanche</b> or <b>snowball</b>, each debt's actual payment is applied first, then any extra monthly payment you've set, plus the full payment amount of any debt that's already been paid off, is pooled together and thrown at whichever debt is "first": avalanche orders by highest interest rate first (minimizes total interest paid); snowball orders by smallest remaining balance first (clears individual debts faster). That's the classic "debt snowball" rolling effect: freed-up payments permanently join the extra-payment pool once a debt is gone. Under <b>minimums only</b>, every debt gets exactly its minimum payment and nothing else. The extra-payment input and the rolling-freed-payments mechanic are both switched off entirely, showing the slowest, most conservative payoff baseline with no acceleration at all.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Budget and cash flow</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="debt" style="border-left-color:#A2532E;">
+        <summary>
+          <span class="method-cat-badge" style="background:#A2532E;">Debt &amp; Budget</span>
+          <span class="method-title">Budget and cash flow</span>
+          <span class="method-summary">Where every dollar of income actually goes, and how it's calculated.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         Built around a real itemized expense list (add, edit, or remove any line) rather than a rough estimate, organized into 15 specific categories (Housing, Utilities, Food, Transportation, Insurance, Healthcare, Personal Care, Subscriptions, Dining Out, Entertainment, Travel, Shopping, Giving, and two catch-alls), each color-coded consistently across the expense list, the cash-flow diagram, and the breakdown table. "Essential living" (used for Lean FIRE) sums every expense whose category is tagged essential under the hood, plus the primary mortgage's P&amp;I and escrow pulled in automatically from Real Estate. "Discretionary" sums everything tagged discretionary. Income is your two salaries (annual &divide; 12) plus monthly rental income. Taxes are computed from real 2025 federal and Virginia tax brackets, applied separately to each person's own income (see the Tax brackets section below), not a flat guess. Debt payments sum the monthly payments on the Debt tab. Investing is your combined current monthly contributions, including employer match. Rental costs are the rental property's P&amp;I, escrow, and other monthly expenses. Whatever's left (or missing) after all of that is shown as surplus or shortfall. This same itemized total is what "income-driven" contribution growth (see above) uses as the spending baseline that grows with inflation. The cash-flow diagram is interactive: hover any band or node for its exact monthly dollar figure.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Tax brackets (Budget tab)</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="tax" style="border-left-color:#3D7A8C;">
+        <summary>
+          <span class="method-cat-badge" style="background:#3D7A8C;">Tax</span>
+          <span class="method-title">Tax brackets (Budget tab)</span>
+          <span class="method-summary">The real 2025 federal and Virginia brackets driving your Budget tab's tax line.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         The Budget tab's tax line uses real progressive tax brackets, not a flat percentage. For each of you separately (since brackets apply per filer, not per household), it subtracts a standard deduction ($15,000 federal, $8,500 Virginia, both 2025 single-filer figures) from gross income, then applies 2025 federal brackets (10% up to $11,925, 12% up to $48,475, 22% up to $103,350, 24% up to $197,300, 32% up to $250,525, 35% up to $626,350, 37% above that) and 2025 Virginia brackets (2% up to $3,000, 3% up to $5,000, 5% up to $17,000, 5.75% above that) to whatever's left. Each bracket's rate only applies to the slice of income inside that bracket, the standard way marginal tax brackets actually work. The two people's tax bills are computed independently and then added together for the household total. This only covers ordinary federal and Virginia income tax on wages; it doesn't include payroll taxes (Social Security, Medicare), assumes Single filing status regardless of what's selected in Tax treatment, and doesn't account for itemized deductions, tax credits, or other income types. The Tax treatment card on the Inputs tab shows your real computed effective and marginal rates as a reference, specifically so the flat rate you set for retirement withdrawals (a separate, deliberately simplified figure, since brackets during retirement depend on decisions this tool doesn't model) can be an informed guess rather than a blind one.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Savings goals</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="tracking" style="border-left-color:#3FA796;">
+        <summary>
+          <span class="method-cat-badge" style="background:#3FA796;">Tracking</span>
+          <span class="method-title">Savings goals</span>
+          <span class="method-summary">How the monthly-savings-needed number gets calculated.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         Each goal is independent of the FIRE machinery and the emergency fund. Months remaining is calculated from today's date to your target date. Monthly savings needed is simply <code>(target amount &minus; current amount) &divide; months remaining</code>, floored at the full remaining amount if the target date has already passed. No investment growth is assumed on money set aside for a goal; it's treated as cash you're accumulating, not investing.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Net worth history</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="tracking" style="border-left-color:#3FA796;">
+        <summary>
+          <span class="method-cat-badge" style="background:#3FA796;">Tracking</span>
+          <span class="method-title">Net worth history</span>
+          <span class="method-summary">What a snapshot captures, and how it compares to the projection.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         Purely a logging tool; nothing here feeds back into any projection. Clicking "Add snapshot" pre-fills today's date and today's actual figures pulled live from your accounts and real estate equity elsewhere in the tool, so you're not re-typing numbers that already exist. Every field is editable afterward if you want to log a different value or backfill an earlier date. The chart plots your logged points directly against the "keep current pace" projected line for the same dates, so drift between plan and reality is visible at a glance.
       </div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3>Estate basics</h3>
-      <div class="sub" style="margin-bottom:0;">
+        </div>
+      </details>
+      <details class="method-section" data-cat="tracking" style="border-left-color:#3FA796;">
+        <summary>
+          <span class="method-cat-badge" style="background:#3FA796;">Tracking</span>
+          <span class="method-title">Estate basics</span>
+          <span class="method-summary">Just a checklist. Nothing here is calculated or used elsewhere.</span>
+        </summary>
+        <div class="method-body">
+          <div class="sub" style="margin-bottom:0;">
         A checklist only. Nothing on this tab is calculated, projected, or used anywhere else in the tool.
       </div>
-    </div>
-
+        </div>
+      </details>
     <div class="assumptext" style="margin-top:16px;">
       <b>What this tool is not:</b> it isn't tax software. The Budget tab's current-year tax estimate uses real federal and Virginia brackets, but assumes Single filing status, ignores payroll taxes, deductions beyond the standard deduction, and credits. Retirement-year taxes still use a flat assumed rate rather than brackets, since future bracket exposure depends on decisions (Roth conversions, withdrawal order, other income) this tool doesn't model. It also doesn't model account-specific withdrawal ordering or Roth conversion strategy, and its Monte Carlo engine uses one simplified random-return draw per month rather than modeling actual asset-class behavior or sequence-of-returns nuance beyond that. Treat every number here as a planning estimate to sanity-check decisions against, not as financial or tax advice.
     </div>
@@ -2351,7 +2466,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.13.0';
+const APP_VERSION = '1.14.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2566,6 +2681,21 @@ document.getElementById('history-horizon-pills').addEventListener('click', (e)=>
   const h = Number(pill.dataset.h);
   historyHorizonYears = h>0 ? h : null;
   renderHistory();
+});
+document.getElementById('method-filter-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill'); if(!pill) return;
+  document.querySelectorAll('#method-filter-pills .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  const cat = pill.dataset.cat;
+  document.querySelectorAll('.method-section').forEach(sec=>{
+    sec.classList.toggle('method-hidden', cat!=='all' && sec.dataset.cat!==cat);
+  });
+});
+document.getElementById('method-expand-all').addEventListener('click', ()=>{
+  document.querySelectorAll('.method-section').forEach(sec=> sec.open = true);
+});
+document.getElementById('method-collapse-all').addEventListener('click', ()=>{
+  document.querySelectorAll('.method-section').forEach(sec=> sec.open = false);
 });
 document.getElementById('debt-add-btn').addEventListener('click', ()=>{
   const maxPriority = state.debts.reduce((m,d)=>Math.max(m,d.priority||0),0);
