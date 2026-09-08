@@ -207,13 +207,13 @@
 
   /* Inputs page */
   .formgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:18px; }
-  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 12px; border-radius:8px; margin:0 -12px; }
+  .fieldrow{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:3px 12px; border-radius:8px; margin:0 -12px; }
   .fieldrow:hover{ background:var(--bg); }
   .fieldrow label{ font-size:12px; color:var(--ink-soft); flex:1.3; }
   .fieldrow .hint{ display:block; font-size:11px; color:var(--ink-faint); margin-top:1px; }
   .fieldrow .inputwrap{ flex:1; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:var(--ink-faint); font-size:12px; }
   input[type=number], input[type=date], input[type=text]{
-    border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:12.5px;
+    border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-size:12px;
     background:var(--paper); width:128px; text-align:right; color:var(--ink);
     font-variant-numeric:tabular-nums; font-family:var(--font-body);
     transition:border-color .12s, box-shadow .12s;
@@ -221,10 +221,10 @@
   input[type=number]{ -moz-appearance:textfield; }
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-  input[type=date]{ width:148px; text-align:left; }
+  input[type=date]{ width:165px; min-width:165px; text-align:left; }
   input[type=checkbox]{ width:16px; height:16px; accent-color:var(--teal); cursor:pointer; }
   select{
-    border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px;
+    border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-size:12px;
     background:var(--paper); color:var(--ink); font-family:var(--font-body); cursor:pointer;
     max-width:100%; box-sizing:border-box;
   }
@@ -513,9 +513,9 @@
               <option value="percent">% of salary</option>
             </select>
           </div></div>
-          <div class="fieldrow"><label>Employer match, $<span class="hint">used if match type is $/month</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.employerMatch"></div></div>
-          <div class="fieldrow"><label>Employer match, %<span class="hint">used if match type is % of salary</span></label><div class="inputwrap"><input type="number" step="0.1" data-path="brad.employerMatchPercent" data-pct="1"><span class="unit">%</span></div></div>
-          <div class="fieldrow"><label>Effective monthly match</label><div class="inputwrap"><span id="brad-match-display" style="font-weight:600;">n/a</span></div></div>
+          <div class="fieldrow" id="brad-match-dollar-row"><label>Employer match, $/mo</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="brad.employerMatch"></div></div>
+          <div class="fieldrow" id="brad-match-percent-row"><label>Employer match, %</label><div class="inputwrap"><input type="number" step="0.1" data-path="brad.employerMatchPercent" data-pct="1"><span class="unit">%</span></div></div>
+          <div class="fieldrow"><label>Effective monthly match<span class="hint">assumed pre-tax; see Methodology</span></label><div class="inputwrap"><span id="brad-match-display" style="font-weight:600;">n/a</span></div></div>
           <div id="brad-accounts-wrap"></div>
           <div class="hint" id="brad-cap-room" style="margin-top:2px; margin-bottom:10px;">n/a</div>
         </div>
@@ -531,9 +531,9 @@
               <option value="percent">% of salary</option>
             </select>
           </div></div>
-          <div class="fieldrow"><label>Employer match, $<span class="hint">used if match type is $/month</span></label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.employerMatch"></div></div>
-          <div class="fieldrow"><label>Employer match, %<span class="hint">used if match type is % of salary</span></label><div class="inputwrap"><input type="number" step="0.1" data-path="wes.employerMatchPercent" data-pct="1"><span class="unit">%</span></div></div>
-          <div class="fieldrow"><label>Effective monthly match</label><div class="inputwrap"><span id="wes-match-display" style="font-weight:600;">n/a</span></div></div>
+          <div class="fieldrow" id="wes-match-dollar-row"><label>Employer match, $/mo</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="wes.employerMatch"></div></div>
+          <div class="fieldrow" id="wes-match-percent-row"><label>Employer match, %</label><div class="inputwrap"><input type="number" step="0.1" data-path="wes.employerMatchPercent" data-pct="1"><span class="unit">%</span></div></div>
+          <div class="fieldrow"><label>Effective monthly match<span class="hint">assumed pre-tax; see Methodology</span></label><div class="inputwrap"><span id="wes-match-display" style="font-weight:600;">n/a</span></div></div>
           <div id="wes-accounts-wrap"></div>
           <div class="hint" id="wes-cap-room" style="margin-top:2px; margin-bottom:10px;">n/a</div>
         </div>
@@ -1065,6 +1065,7 @@ const state = {
   debtStrategy: 'avalanche',
   debtExtra: 0,
   netWorthHistory: [],
+  sharedScenario: 'increase',
   goals: [
     { id:'goal1', name:'Roof replacement', targetAmount:20000, targetDate:'2028-06-01', currentAmount:0 }
   ],
@@ -1102,8 +1103,6 @@ function horizonYears(){
   const p = state.assumptions.planToAge;
   return Math.max(p-bradAge0, p-wesAge0, 10);
 }
-let nwScenario = 'increase';
-let projScenario = 'stop';
 let projHorizon = 40;
 let dashHorizonYears = null;
 let debtHorizonYears = null;
@@ -1472,7 +1471,7 @@ function renderDashboard(){
   document.getElementById('stat-income').textContent = fmt$(combinedIncome);
   document.getElementById('stat-savingsrate').textContent = combinedIncome>0 ? fmtPct(combinedContrib/combinedIncome) : 'n/a';
 
-  const rowsFull = project(nwScenario);
+  const rowsFull = project(state.sharedScenario);
   const rows = sliceToHorizon(rowsFull);
   const labels = rows.map(r=>r.year);
   if(charts.networth) charts.networth.destroy();
@@ -1515,7 +1514,7 @@ const FIRE_META = {
 };
 
 function renderLiquidChart(){
-  const rows = projectLiquidDrawdown(nwScenario, includeLifestyleCreep);
+  const rows = projectLiquidDrawdown(state.sharedScenario, includeLifestyleCreep);
   const sliced = sliceToHorizon(rows);
   const zeroIdx = rows.findIndex(r=>r.liquid<=0.01);
   if(charts['liquid']) charts['liquid'].destroy();
@@ -1685,8 +1684,8 @@ function runMonteCarlo(nSims){
         let bradContribG=0, bradContribC=0, wesContribG=0, wesContribC=0;
         const yearFrac = i/12;
         if(bradAgeMonths < state.brad.retireAge*12){
-          if(nwScenario==='continue'){ bradContribG = personContribGrowable('brad'); bradContribC = personContribCash('brad'); }
-          else if(nwScenario==='increase'){
+          if(state.sharedScenario==='continue'){ bradContribG = personContribGrowable('brad'); bradContribC = personContribCash('brad'); }
+          else if(state.sharedScenario==='increase'){
             if(state.contributionMode==='incomeDriven'){
               bradContribG = personContribGrowable('brad') + incomeDrivenExtraAnnual('brad', yearFrac)/12;
               bradContribC = personContribCash('brad');
@@ -1698,8 +1697,8 @@ function runMonteCarlo(nSims){
           }
         }
         if(wesAgeMonths < state.wes.retireAge*12){
-          if(nwScenario==='continue'){ wesContribG = personContribGrowable('wes'); wesContribC = personContribCash('wes'); }
-          else if(nwScenario==='increase'){
+          if(state.sharedScenario==='continue'){ wesContribG = personContribGrowable('wes'); wesContribC = personContribCash('wes'); }
+          else if(state.sharedScenario==='increase'){
             if(state.contributionMode==='incomeDriven'){
               wesContribG = personContribGrowable('wes') + incomeDrivenExtraAnnual('wes', yearFrac)/12;
               wesContribC = personContribCash('wes');
@@ -2160,7 +2159,7 @@ function renderBudget(){
 }
 
 function renderProjection(){
-  const allRows = project(projScenario);
+  const allRows = project(state.sharedScenario);
   const yearly = allRows.filter(r=>r.i%12===0).slice(0, projHorizon);
   const tbody = document.getElementById('proj-tbody');
   const html = yearly.map(r=>{
@@ -2200,6 +2199,19 @@ function renderInputsLive(){
   const bradRoom = capRoomAnnual('brad'), wesRoom = capRoomAnnual('wes');
   document.getElementById('brad-cap-room').textContent = `Room left this year: ${fmt$full(bradRoom.room401k)} in 401(k), ${fmt$full(bradRoom.roomIRA)} in Roth IRA (${(rothIRAEligibleFraction('brad')*100).toFixed(0)}% eligible at your income), ${fmt$full(bradRoom.roomHSA)} in HSA.`;
   document.getElementById('wes-cap-room').textContent = `Room left this year: ${fmt$full(wesRoom.room401k)} in 401(k), ${fmt$full(wesRoom.roomIRA)} in Roth IRA (${(rothIRAEligibleFraction('wes')*100).toFixed(0)}% eligible at your income), ${fmt$full(wesRoom.roomHSA)} in HSA.`;
+  function syncEmployerMatch(who){
+    const p = state[who];
+    if(p.employerMatchType==='percent') p.employerMatch = (p.income/12)*p.employerMatchPercent;
+    else p.employerMatchPercent = p.income>0 ? (p.employerMatch*12)/p.income : 0;
+    document.getElementById(who+'-match-dollar-row').style.display = p.employerMatchType==='percent' ? 'none' : 'flex';
+    document.getElementById(who+'-match-percent-row').style.display = p.employerMatchType==='percent' ? 'flex' : 'none';
+    const dInput = document.querySelector(`input[data-path="${who}.employerMatch"]`);
+    const pInput = document.querySelector(`input[data-path="${who}.employerMatchPercent"]`);
+    if(dInput && document.activeElement!==dInput) dInput.value = Number(p.employerMatch.toFixed(2));
+    if(pInput && document.activeElement!==pInput) pInput.value = Number((p.employerMatchPercent*100).toFixed(2));
+  }
+  syncEmployerMatch('brad');
+  syncEmployerMatch('wes');
   document.getElementById('brad-match-display').textContent = fmt$full(personEmployerMatch('brad'))+'/mo';
   document.getElementById('wes-match-display').textContent = fmt$full(personEmployerMatch('wes'))+'/mo';
 
@@ -2231,7 +2243,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.8.0';
+const APP_VERSION = '1.9.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2353,13 +2365,19 @@ document.querySelectorAll('.navitem').forEach(item=>{
     renderActive();
   });
 });
+function syncScenarioPillsUI(){
+  document.querySelectorAll('#nw-scenario-pills .pill, #proj-scenario-pills .pill').forEach(p=>{
+    p.classList.toggle('active', p.dataset.scn===state.sharedScenario);
+  });
+  document.getElementById('increase-rate-box').style.display = (state.sharedScenario==='increase') ? 'flex' : 'none';
+  const activePill = document.querySelector('#nw-scenario-pills .pill.active');
+  if(activePill) document.getElementById('mc-scenario-label').textContent = activePill.textContent;
+}
 document.getElementById('nw-scenario-pills').addEventListener('click', (e)=>{
   const pill = e.target.closest('.pill'); if(!pill) return;
-  document.querySelectorAll('#nw-scenario-pills .pill').forEach(p=>p.classList.remove('active'));
-  pill.classList.add('active');
-  nwScenario = pill.dataset.scn;
-  document.getElementById('increase-rate-box').style.display = (nwScenario==='increase') ? 'flex' : 'none';
-  document.getElementById('mc-scenario-label').textContent = pill.textContent;
+  state.sharedScenario = pill.dataset.scn;
+  saveState();
+  syncScenarioPillsUI();
   renderDashboard();
 });
 function updateContribModeUI(){
@@ -2370,9 +2388,9 @@ function updateContribModeUI(){
 document.getElementById('contrib-mode-select').addEventListener('change', updateContribModeUI);
 document.getElementById('proj-scenario-pills').addEventListener('click', (e)=>{
   const pill = e.target.closest('.pill'); if(!pill) return;
-  document.querySelectorAll('#proj-scenario-pills .pill').forEach(p=>p.classList.remove('active'));
-  pill.classList.add('active');
-  projScenario = pill.dataset.scn;
+  state.sharedScenario = pill.dataset.scn;
+  saveState();
+  syncScenarioPillsUI();
   renderProjection();
 });
 document.getElementById('proj-horizon-pills').addEventListener('click', (e)=>{
@@ -2457,6 +2475,7 @@ document.getElementById('app-version').textContent = 'v'+APP_VERSION;
 loadState();
 bindAll();
 updateContribModeUI();
+syncScenarioPillsUI();
 renderInputsLive();
 renderDashboard();
 document.getElementById('reset-inputs-link').addEventListener('click', (e)=>{
