@@ -1070,6 +1070,15 @@ const state = {
   ],
   estate: { hasWill:false, willDate:'', hasPOA:false, hasHealthcareProxy:false, beneficiariesReviewed:false, beneficiariesDate:'', notes:'' }
 };
+const FRESH_DEFAULTS = JSON.parse(JSON.stringify({
+  bradAccounts: state.brad.accounts,
+  wesAccounts: state.wes.accounts,
+  bradIncome: state.brad.income,
+  bradEmployerMatch: state.brad.employerMatch,
+  bradEmployerMatchType: state.brad.employerMatchType,
+  bradEmployerMatchPercent: state.brad.employerMatchPercent,
+  realEstate: state.realEstate
+}));
 
 function ageMonthsFromDob(dobStr, today){
   const dob = new Date(dobStr+'T00:00:00');
@@ -2222,7 +2231,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.7.3';
+const APP_VERSION = '1.8.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
@@ -2256,9 +2265,24 @@ function loadState(){
       saveState();
     }
   }catch(e){}
+  try{
+    const ACCOUNTS_MIGRATION_KEY = 'fireTrackerMigration_realAccountsV3';
+    if(!localStorage.getItem(ACCOUNTS_MIGRATION_KEY)){
+      state.brad.accounts = JSON.parse(JSON.stringify(FRESH_DEFAULTS.bradAccounts));
+      state.wes.accounts = JSON.parse(JSON.stringify(FRESH_DEFAULTS.wesAccounts));
+      state.brad.income = FRESH_DEFAULTS.bradIncome;
+      state.brad.employerMatch = FRESH_DEFAULTS.bradEmployerMatch;
+      state.brad.employerMatchType = FRESH_DEFAULTS.bradEmployerMatchType;
+      state.brad.employerMatchPercent = FRESH_DEFAULTS.bradEmployerMatchPercent;
+      state.realEstate = JSON.parse(JSON.stringify(FRESH_DEFAULTS.realEstate));
+      localStorage.setItem(ACCOUNTS_MIGRATION_KEY, '1');
+      saveState();
+    }
+  }catch(e){}
   state.debts.forEach(d=>{ if(d.minPayment===undefined || d.minPayment===null) d.minPayment = d.payment; });
 }
 
+let suppressAutoSelect = false;
 function bindOne(el){
   const path = el.dataset.path;
   const isPct = el.dataset.pct==='1';
@@ -2269,7 +2293,7 @@ function bindOne(el){
   if(isCheck) el.checked = !!val;
   else el.value = (isDate || isText) ? val : (isPct ? Number((val*100).toFixed(2)) : val);
   if(el.type==='number' || el.type==='text'){
-    el.addEventListener('focus', ()=> el.select());
+    el.addEventListener('focus', ()=>{ if(!suppressAutoSelect) el.select(); });
   }
   el.addEventListener(isCheck ? 'change' : 'input', ()=>{
     let v;
@@ -2286,19 +2310,21 @@ function bindOne(el){
     saveState();
 
     const focusedPath = path;
-    const isTextLike = (el.tagName==='INPUT' && (el.type==='text' || el.type==='number')) || el.tagName==='TEXTAREA';
-    const selStart = isTextLike ? el.selectionStart : null;
-    const selEnd = isTextLike ? el.selectionEnd : null;
+    const isSelectable = el.tagName==='INPUT' && el.type==='text';
+    const selStart = isSelectable ? el.selectionStart : null;
+    const selEnd = isSelectable ? el.selectionEnd : null;
 
     renderActive();
 
     if(focusedPath){
       const revived = document.querySelector(`[data-path="${focusedPath}"]`);
       if(revived){
+        suppressAutoSelect = true;
         revived.focus();
         if(selStart!==null && revived.setSelectionRange){
           try{ revived.setSelectionRange(selStart, selEnd); }catch(e){}
         }
+        suppressAutoSelect = false;
       }
     }
   });
