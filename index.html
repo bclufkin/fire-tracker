@@ -1693,7 +1693,7 @@ function renderDashboard(){
         tooltip:{ callbacks:{ label:(ctx)=> ctx.dataset.label+': '+fmt$full(ctx.parsed.y) } }
       },
       scales:{
-        x:{ grid:{ display:false }, ticks:{ maxTicksLimit:12 } },
+        x: dualTierXAxis(rows),
         y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
       }
     }
@@ -1730,7 +1730,7 @@ function renderLiquidChart(){
         tooltip:{ callbacks:{ label:(ctx)=>fmt$full(ctx.parsed.y), title:(items)=>MONTH_ABBR[sliced[items[0].dataIndex].month]+' '+items[0].label } }
       },
       scales:{
-        x:{ grid:{ display:false }, ticks:{ maxTicksLimit:12 } },
+        x: dualTierXAxis(sliced),
         y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
       }
     }
@@ -1787,6 +1787,20 @@ function renderFireCards(rowsContinueUnused){
   });
 }
 const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function dualTierXAxis(rows, extra){
+  return Object.assign({
+    grid:{ display:false },
+    ticks:{
+      maxTicksLimit: 10,
+      autoSkip: true,
+      callback:function(val, idx){
+        const r = rows[idx];
+        if(!r) return '';
+        return [MONTH_ABBR[r.month], String(r.year)];
+      }
+    }
+  }, extra||{});
+}
 function achievechip(label, row){
   const disp = row ? MONTH_ABBR[row.month]+' '+row.year : 'n/a';
   return '<div class="achievechip"><div class="k">'+label+'</div><div class="v">'+disp+'</div></div>';
@@ -1990,7 +2004,7 @@ function renderMonteCarloResults(){
           tooltip:{ callbacks:{ label:(ctx)=> ctx.dataset.label+': '+fmt$full(ctx.parsed.y) } }
         },
         scales:{
-          x:{ grid:{ display:false }, ticks:{ maxTicksLimit:10 } },
+          x: dualTierXAxis(mcBands),
           y:{ grid:{ color:'#EFE9D8' }, ticks:{ callback:(v)=>fmt$(v) } }
         }
       }
@@ -2079,7 +2093,7 @@ function renderDebt(){
   const debtToday = new Date();
   const labels = sampled.map(h=>{
     const d = new Date(debtToday.getFullYear(), debtToday.getMonth()+h.month, 1);
-    return MONTH_ABBR[d.getMonth()]+" '"+String(d.getFullYear()).slice(2);
+    return [MONTH_ABBR[d.getMonth()], String(d.getFullYear())];
   });
   const palette = ['#A2532E','#3F6B52','#5A6B95','#B8935A','#8FA894','#1E3128'];
   const debtDatasets = state.debts.map((sd,idx)=>({
@@ -2096,7 +2110,7 @@ function renderDebt(){
       interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{ position:'top', align:'end', labels:{ boxWidth:10, boxHeight:10, font:{size:11} } },
-        tooltip:{ callbacks:{ label:(ctx)=>ctx.dataset.label+': '+fmt$full(ctx.parsed.y), title:(items)=>items[0].label } }
+        tooltip:{ callbacks:{ label:(ctx)=>ctx.dataset.label+': '+fmt$full(ctx.parsed.y), title:(items)=>{ const l=items[0].label; return Array.isArray(l) ? l.join(' ') : l; } } }
       },
       scales:{
         x:{ grid:{ display:false }, ticks:{ maxTicksLimit:10 } },
@@ -2466,7 +2480,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.14.0';
+const APP_VERSION = '1.15.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
