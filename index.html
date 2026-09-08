@@ -158,9 +158,14 @@
   .stat{
     background:var(--paper);
     border:1px solid var(--line);
+    border-top:3px solid var(--stat-accent, var(--teal));
     border-radius:var(--radius);
     padding:16px 18px;
   }
+  .stats .stat:nth-child(1){ --stat-accent:#2F4A3D; }
+  .stats .stat:nth-child(2){ --stat-accent:#3D7A8C; }
+  .stats .stat:nth-child(3){ --stat-accent:#B8935A; }
+  .stats .stat:nth-child(4){ --stat-accent:#3FA796; }
   .stat .label{ font-size:10.5px; color:var(--ink-soft); margin-bottom:7px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; }
   .stat .value{ font-family:var(--font-head); font-size:25px; }
   .stat .value.teal{ color:var(--teal-dark); }
@@ -2225,20 +2230,22 @@ function renderAccountsTable(who){
 function renderGoals(){
   const grid = document.getElementById('goals-grid');
   const today = new Date();
+  const palette = ['#2F4A3D','#3D7A8C','#B8935A','#5A6B95','#A2532E','#8A6BA8','#3FA796','#B85C7A'];
   grid.innerHTML = state.goals.map((g,idx)=>{
     const target = new Date(g.targetDate+'T00:00:00');
     const monthsLeft = Math.max((target.getFullYear()-today.getFullYear())*12+(target.getMonth()-today.getMonth()), 0);
     const remaining = Math.max(g.targetAmount-g.currentAmount,0);
     const monthlyNeeded = monthsLeft>0 ? remaining/monthsLeft : remaining;
     const pct = g.targetAmount>0 ? Math.min(g.currentAmount/g.targetAmount,1) : 0;
-    return `<div class="firecard">
+    const color = palette[idx%palette.length];
+    return `<div class="firecard" style="border-top:3px solid ${color};">
       <div class="top">
         <h3><input type="text" data-path="goals.${idx}.name" style="border:none; background:transparent; font-family:var(--font-head); font-weight:700; font-size:16.5px; padding:0; width:160px;"></h3>
         <span class="goal-remove" data-id="${g.id}" style="cursor:pointer; color:var(--rust); font-weight:700;" title="Remove">&times;</span>
       </div>
       <div class="desc">Target $<input type="number" data-path="goals.${idx}.targetAmount" style="width:76px;"> by <input type="date" data-path="goals.${idx}.targetDate" style="width:128px;"></div>
-      <div class="bignum">${fmt$(monthlyNeeded)}/mo</div>
-      <div class="progresswrap"><div class="progressbar" style="width:${(pct*100).toFixed(0)}%;"></div></div>
+      <div class="bignum" style="color:${color};">${fmt$(monthlyNeeded)}/mo</div>
+      <div class="progresswrap"><div class="progressbar" style="width:${(pct*100).toFixed(0)}%; background:${color};"></div></div>
       <div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:8px;">${(pct*100).toFixed(0)}% saved &middot; ${monthsLeft} months left</div>
       <div class="fieldrow"><label>Currently set aside</label><div class="inputwrap"><span class="unit">$</span><input type="number" data-path="goals.${idx}.currentAmount" style="width:90px;"></div></div>
     </div>`;
@@ -2480,7 +2487,7 @@ function renderInputsLive(){
 }
 
 /* ===================== BIND INPUTS ===================== */
-const APP_VERSION = '1.15.0';
+const APP_VERSION = '1.16.0';
 const STORAGE_KEY = 'fireTrackerState_v1';
 function deepMerge(target, source){
   for(const k in source){
